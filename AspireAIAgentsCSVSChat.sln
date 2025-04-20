@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35521.163 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspireAIAgentsCSVSChat.AppHost", "AspireAIAgentsCSVSChat\AspireAIAgentsCSVSChat.AppHost\AspireAIAgentsCSVSChat.AppHost.csproj", "{EB5F4E47-BE5A-4494-9CEA-7B2F4D985083}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspireAIAgentsCSVSChat.ServiceDefaults", "AspireAIAgentsCSVSChat\AspireAIAgentsCSVSChat.ServiceDefaults\AspireAIAgentsCSVSChat.ServiceDefaults.csproj", "{CEB004B1-9622-4044-8F48-45BBF7F31028}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspireAIAgentsCSVSChat.Web", "AspireAIAgentsCSVSChat\AspireAIAgentsCSVSChat.Web\AspireAIAgentsCSVSChat.Web.csproj", "{6901C915-710E-441B-B1A9-09E27653BBEE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EB5F4E47-BE5A-4494-9CEA-7B2F4D985083}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB5F4E47-BE5A-4494-9CEA-7B2F4D985083}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB5F4E47-BE5A-4494-9CEA-7B2F4D985083}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB5F4E47-BE5A-4494-9CEA-7B2F4D985083}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEB004B1-9622-4044-8F48-45BBF7F31028}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEB004B1-9622-4044-8F48-45BBF7F31028}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEB004B1-9622-4044-8F48-45BBF7F31028}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEB004B1-9622-4044-8F48-45BBF7F31028}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6901C915-710E-441B-B1A9-09E27653BBEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6901C915-710E-441B-B1A9-09E27653BBEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6901C915-710E-441B-B1A9-09E27653BBEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6901C915-710E-441B-B1A9-09E27653BBEE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

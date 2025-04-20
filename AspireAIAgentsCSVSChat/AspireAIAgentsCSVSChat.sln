@@ -1,0 +1,34 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{224B5A8A-70B5-40AC-843C-52D532D64748}") = "AspireAIAgentsCSVSChat.AppHost", "AspireAIAgentsCSVSChat.AppHost\AspireAIAgentsCSVSChat.AppHost.csproj", "{294A9D36-A4F0-4CDD-A957-0263509C3519}"
+EndProject
+Project("{224B5A8A-70B5-40AC-843C-52D532D64748}") = "AspireAIAgentsCSVSChat.ServiceDefaults", "AspireAIAgentsCSVSChat.ServiceDefaults\AspireAIAgentsCSVSChat.ServiceDefaults.csproj", "{06E69850-D1B1-4F59-9FC3-6A1ED97BCCDB}"
+EndProject
+Project("{224B5A8A-70B5-40AC-843C-52D532D64748}") = "AspireAIAgentsCSVSChat.Web", "AspireAIAgentsCSVSChat.Web\AspireAIAgentsCSVSChat.Web.csproj", "{DAC48BCD-419A-41FB-8C52-708D2949D69C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{294A9D36-A4F0-4CDD-A957-0263509C3519}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{294A9D36-A4F0-4CDD-A957-0263509C3519}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{294A9D36-A4F0-4CDD-A957-0263509C3519}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{294A9D36-A4F0-4CDD-A957-0263509C3519}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06E69850-D1B1-4F59-9FC3-6A1ED97BCCDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06E69850-D1B1-4F59-9FC3-6A1ED97BCCDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06E69850-D1B1-4F59-9FC3-6A1ED97BCCDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06E69850-D1B1-4F59-9FC3-6A1ED97BCCDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAC48BCD-419A-41FB-8C52-708D2949D69C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAC48BCD-419A-41FB-8C52-708D2949D69C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAC48BCD-419A-41FB-8C52-708D2949D69C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAC48BCD-419A-41FB-8C52-708D2949D69C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

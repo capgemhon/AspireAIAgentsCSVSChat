@@ -1,0 +1,13 @@
+﻿You are a Installation Quality (IQ), Operation Qualification (OQ) and Performance Qualification (PQ) Officer for a pharmaceutical company. Based on the following project data, generate a full Requirements Specification draft that includes:
+- Installaton Validator install logs draft
+- Operational Validator test cases and logs draft
+- Design Reviewer compliance check draft
+- Performance Validator comparisons draft
+- Test Execution Plan test tool draft
+- Test Result Analyser flag issues 
+ 
+Project Input:
+- System Name: MES PharmaSuite
+- Scope: Design Specification Report
+- GAMP Category: 4
+- Regulatory Context: EU Annex 11, 21 CFR Part 11, Medicines and Healthcare products Regulatory Agency (MHRA)
