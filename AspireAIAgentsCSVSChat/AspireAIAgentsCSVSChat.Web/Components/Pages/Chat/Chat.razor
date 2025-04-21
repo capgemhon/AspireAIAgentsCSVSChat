@@ -12,9 +12,9 @@
 
 <ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage">  
    <NoMessagesContent>  
-       <div>To get started, try asking about these example documents. You can replace these with your own data and replace this message.</div>  
-       <ChatCitation File="Example_Emergency_Survival_Kit.pdf"/>  
-       <ChatCitation File="Example_GPS_Watch.pdf"/>  
+       <div>To get started, try asking about these example documents. You can replace these with your own data and replace this message.</div>
+        <ChatCitation File="GMP_Compliance_Report_Guidelines_V_7.pdf"/>
+        <ChatCitation File="PreValidationSummaryReportMock1.pdf"/>
    </NoMessagesContent>  
 </ChatMessageList>  
 
@@ -26,12 +26,14 @@
 
 @code {  
    private const string SystemPrompt = @"  
-       You are an expert assistant in an computer system validation (CSV) in pharmaceutical manufacturing.
-       You are answers questions about information you retrieve through the multiagents.
+       You are an CSV assistant who answers questions about information you retrieve.
+       Use only simple markdown to format your responses.
+       You are able to fully check or analyze whole external documents and process them if you can to see if this document is compliant or not.
+       You can analyse any provided snippets or key sections of the report
        Do not answer questions about anything else.  
 
-       You can use the search tool to find relevant information, if not do the general search. When you do this, end your  
-       reply with any citations as the sourcein the special XML format:  
+       You can use the search tool to find relevant information. When you do this, end your  
+       reply with any citations as the source in the special XML format:  
 
        <citation filename='string' page_number='number'>exact quote here</citation>  
 
@@ -64,15 +66,16 @@
        var responseText = new TextContent("");  
        currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);  
        currentResponseCancellation = new();  
-        // Call the GetMultiAgentResponseAsync method
-       string aiMultiAgentResponses = await MultiAgentApiClient.GetMultiAgentResponseAsync(userMessage.Text);
 
-       // await foreach (var update in ChatClient.GetStreamingResponseAsync([.. messages], chatOptions, currentResponseCancellation.Token))  
-       // {  
-       //     messages.AddMessages(update, filter: c => c is not TextContent);  
-       //     responseText.Text += update.Text;  
-       //     ChatMessageItem.NotifyChanged(currentResponseMessage);  
-       // }  
+       await foreach (var update in ChatClient.GetStreamingResponseAsync([.. messages], chatOptions, currentResponseCancellation.Token))
+       {
+            messages.AddMessages(update, filter: c => c is not TextContent);
+            responseText.Text += update.Text;
+            ChatMessageItem.NotifyChanged(currentResponseMessage);
+       }
+
+       // Call the GetMultiAgentResponseAsync method
+       string aiMultiAgentResponses = await MultiAgentApiClient.GetMultiAgentResponseAsync(responseText.Text);
        messages.Add(new ChatMessage(ChatRole.Assistant, new TextContent(aiMultiAgentResponses).Text));
        ChatMessageItem.NotifyChanged(currentResponseMessage);
 
