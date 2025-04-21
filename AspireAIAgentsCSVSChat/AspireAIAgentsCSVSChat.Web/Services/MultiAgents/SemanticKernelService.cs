@@ -123,9 +123,41 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                     Kernel = kernel
                 };
 
+            ChatCompletionAgent InstallationQualityOPAgent =
+                new()
+                {
+                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.DesignQualification)}""",
+                    Name = SystemPromptFactory.GetAgentName(AgentType.DesignQualification),
+                    Kernel = kernel
+                };
+
+            ChatCompletionAgent DocumentationTrainingAgent =
+                new()
+                {
+                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.DesignQualification)}""",
+                    Name = SystemPromptFactory.GetAgentName(AgentType.DesignQualification),
+                    Kernel = kernel
+                };
+
+            ChatCompletionAgent ChangeManagementAgent =
+                new()
+                {
+                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.DesignQualification)}""",
+                    Name = SystemPromptFactory.GetAgentName(AgentType.DesignQualification),
+                    Kernel = kernel
+                };
+
+            ChatCompletionAgent OngoingReviewAgent =
+                new()
+                {
+                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.DesignQualification)}""",
+                    Name = SystemPromptFactory.GetAgentName(AgentType.DesignQualification),
+                    Kernel = kernel
+                };
+
 #pragma warning disable SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
             AgentGroupChat chat =
-                new(ValidationPlanningAgent, RequirementsSpecificationAgent, DesignQualificationAgent)
+                new(ValidationPlanningAgent, RequirementsSpecificationAgent, DesignQualificationAgent, InstallationQualityOPAgent, DocumentationTrainingAgent, ChangeManagementAgent, OngoingReviewAgent)
                 {
                     ExecutionSettings =
                         new()
@@ -134,7 +166,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                                 new ApprovalTerminationStrategy()
                                 {
                                     Agents = [DesignQualificationAgent],
-                                    MaximumIterations = 6,
+                                    MaximumIterations = 10,
                                 }
                         }
                 };

@@ -9,5 +9,6 @@
         DocumentationTraining = 4,
         ChangeManagement = 5,
         OngoingReview = 6,
+        Coordinator = 7,
     }
 }

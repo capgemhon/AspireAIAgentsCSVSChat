@@ -1,10 +1,17 @@
 ﻿Examine RESPONSE and choose the next participant.
 
 Choose only from these participants:
-- Coordinator
-- CustomerSupport
-- Sales
+- ValidationPlanning
+- RequirementsSpecification
 - Transactions
+- DesignQualification
+- InstallationQualityOP
+- DocumentationTraining
+- DocumentationTraining
+- ChangeManagement
+- OngoingReview
+
+- Coordinator
 
 Always follow these rules when choosing the next participant:
 - Determine the nature of the user's request and route it to the appropriate agent
