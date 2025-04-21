@@ -165,7 +165,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                             TerminationStrategy =
                                 new ApprovalTerminationStrategy()
                                 {
-                                    Agents = [DesignQualificationAgent],
+                                    Agents = [OngoingReviewAgent],
                                     MaximumIterations = 10,
                                 }
                         }
