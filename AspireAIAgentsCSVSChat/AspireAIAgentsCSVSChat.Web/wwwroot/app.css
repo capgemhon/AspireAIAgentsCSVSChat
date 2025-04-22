@@ -92,3 +92,9 @@ h1:focus {
     max-width: 1024px;
     margin: auto;
 }
+
+.upload-button {
+    width:250px; 
+    margin:10px; 
+    margin-left:95px;
+}

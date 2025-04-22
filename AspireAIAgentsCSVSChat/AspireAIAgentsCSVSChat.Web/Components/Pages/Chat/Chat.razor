@@ -19,10 +19,30 @@
 </ChatMessageList>  
 
 <div class="chat-container">  
-   <ChatSuggestions OnSelected="@AddUserMessageAsync" @ref="@chatSuggestions" />  
-   <ChatInput OnSend="@AddUserMessageAsync" @ref="@chatInput" />  
-   <SurveyPrompt /> @* Remove this line to eliminate the template survey message *@  
+  <ChatSuggestions OnSelected="@AddUserMessageAsync" @ref="@chatSuggestions" />  
+  <ChatInput OnSend="@AddUserMessageAsync" @ref="@chatInput" />  
+  @* <SurveyPrompt /> *@ @* Remove this line to eliminate the template survey message *@ 
+  
+  <div class="btn-default upload-button" style="width:250px; margin:10px; margin-left:95px;">  
+      <InputFile OnChange="UploadFileSelected" />  
+  </div>  
 </div>  
+
+@code {  
+    private async Task UploadFileSelected(InputFileChangeEventArgs e)
+    {  
+        var file = e.File as IBrowserFile;  
+        if (file is not null)  
+        {  
+            var uploadPath = Path.Combine("wwwroot", "Uploads", file.Name);  
+            Directory.CreateDirectory(Path.GetDirectoryName(uploadPath)!);  
+
+            await using var stream = file.OpenReadStream();  
+            await using var fileStream = File.Create(uploadPath);  
+            await stream.CopyToAsync(fileStream);  
+        }  
+    }  
+}
 
 @code {  
    private const string SystemPrompt = @"  
