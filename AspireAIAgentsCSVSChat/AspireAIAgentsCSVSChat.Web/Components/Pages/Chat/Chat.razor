@@ -5,33 +5,37 @@
 @inject SemanticSearch Search  
 @inject AspireAIAgentsCSVSChat.Web.Services.MultiAgents.MultiAgentApiClient MultiAgentApiClient
 @implements IDisposable  
+@using Microsoft.AspNetCore.Hosting
+@using AspireAIAgentsCSVSChat.Web.Services.Ingestion
+@inject IServiceProvider ServiceProvider
 
 <PageTitle>Chat</PageTitle>  
 
 <ChatHeader OnNewChat="@ResetConversationAsync" />  
 
 <ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage">  
-   <NoMessagesContent>  
-       <div>To get started, try asking about these example documents. You can replace these with your own data and replace this message.</div>
+    <NoMessagesContent>  
+        <div>To get started, try asking about these example documents. You can replace these with your own data and replace this message.</div>
         <ChatCitation File="GMP_Compliance_Report_Guidelines_V_7.pdf"/>
-        <ChatCitation File="PreValidationSummaryReportMock1.pdf"/>
-   </NoMessagesContent>  
+    </NoMessagesContent>  
 </ChatMessageList>  
 
 <div class="chat-container">  
-  <ChatSuggestions OnSelected="@AddUserMessageAsync" @ref="@chatSuggestions" />  
-  <ChatInput OnSend="@AddUserMessageAsync" @ref="@chatInput" />  
-  @* <SurveyPrompt /> *@ @* Remove this line to eliminate the template survey message *@ 
-  
-  <div class="btn-default upload-button" style="width:250px; margin:10px; margin-left:95px;">  
-      <InputFile OnChange="UploadFileSelected" />  
-  </div>  
+    <ChatSuggestions OnSelected="@AddUserMessageAsync" @ref="@chatSuggestions" />  
+    <ChatInput OnSend="@AddUserMessageAsync" @ref="@chatInput" />  
+    @* <SurveyPrompt /> *@ @* Remove this line to eliminate the template survey message *@ 
+
+    <div class="btn-default upload-button" style="width:250px; margin:10px; margin-left:95px;">  
+        <InputFile OnChange="UploadFileSelected" />  
+    </div>  
 </div>  
 
-@code {  
+@code {
+    private IHostingEnvironment _environment;
+
     private async Task UploadFileSelected(InputFileChangeEventArgs e)
-    {  
-        var file = e.File as IBrowserFile;  
+    {
+        var file = e.File as IBrowserFile;
         if (file is not null)  
         {  
             var uploadPath = Path.Combine("wwwroot", "Uploads", file.Name);  
@@ -40,8 +44,17 @@
             await using var stream = file.OpenReadStream();  
             await using var fileStream = File.Create(uploadPath);  
             await stream.CopyToAsync(fileStream);  
-        }  
-    }  
+
+            await fileStream.DisposeAsync();  
+            await stream.DisposeAsync();  
+
+            _environment = ServiceProvider.GetRequiredService<IHostingEnvironment>();  
+            await DataIngestor.IngestDataAsync(  
+                ServiceProvider,  
+                new PDFDirectorySource(Path.Combine(_environment.WebRootPath, "Uploads"))  
+            );  
+        }
+    }
 }
 
 @code {  
