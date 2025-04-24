@@ -1,22 +1,22 @@
-﻿using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Embeddings;
+﻿using AspireAIAgentsCSVSChat.Web.Services.Configuration;
+using AspireAIAgentsCSVSChat.Web.Services.Factories;
+using AspireAIAgentsCSVSChat.Web.Services.Interfaces;
+using AspireAIAgentsCSVSChat.Web.Services.Models;
+// Added Microsoft.SemanticKernel (1.4.7)
+using AspireAIAgentsCSVSChat.Web.Services.Plugins;
+using Azure;
+using Azure.AI.OpenAI;
+using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 // Added Microsoft.SemanticKernel.Agents (1.4.7)
 using Microsoft.SemanticKernel.Agents;
 // Added Microsoft.SemanticKernel.Agents.OpenAI (1.4.7-preview)
 using Microsoft.SemanticKernel.Agents.Chat;
-using AspireAIAgentsCSVSChat.Web.Services.Interfaces;
-using Microsoft.Extensions.AI;
-using AspireAIAgentsCSVSChat.Web.Services.Configuration;
-using AspireAIAgentsCSVSChat.Web.Services.Models;
-using AspireAIAgentsCSVSChat.Web.Services.Factories;
+using Microsoft.SemanticKernel.ChatCompletion;
 // Added Microsoft.SemanticKernel.Agents.Abstractions (1.4.7-preview)
 // Added Microsoft.SemanticKernel.Connectors.OpenAI (1.4.7)
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Azure.AI.OpenAI;
-using Aspire.Azure.AI.OpenAI;
-using Azure;
-// Added Microsoft.SemanticKernel (1.4.7)
+using Microsoft.SemanticKernel.Embeddings;
 
 namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
 {
@@ -98,6 +98,13 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
 
             // Build the kernel  
             var kernel = builder.Build();
+
+            //Create instances for plugins
+            var bingTextSearch = BingWebSearchSettings.CreateBingTextSearch(ConfigurationBuilderFactory.BuildConfiguration());
+            var bingPlugin = new BingSearchPlugin(bingTextSearch);
+
+            // Add the plugin(s) to the kernel
+            kernel.Plugins.AddFromObject(bingPlugin, "BingSearchPlugin");
 
             ChatCompletionAgent ValidationPlanningAgent =
                 new()
@@ -217,7 +224,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             // Convert message history to a format compatible with the chat completion service  
             var chatHistory = messageHistory.Select(msg => new ChatMessage
             {
-                
+
                 AuthorName = msg.AuthorName,
                 Contents = msg.Contents
             }).ToList();
