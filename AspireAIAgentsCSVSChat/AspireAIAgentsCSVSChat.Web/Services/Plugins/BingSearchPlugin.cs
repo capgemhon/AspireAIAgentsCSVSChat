@@ -17,6 +17,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.Plugins
 
         [KernelFunction("gamp_text_search")]
         [Description("Text Search the web using Bing")]
+        [return: Description("The text search results as a string. Each result is separated by a new line.")]
         public async Task<string> SearchAsync(string query)
         {
             //TODO add site filter
@@ -44,6 +45,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.Plugins
         }
         [KernelFunction("gamp_web_page_search")]
         [Description("Web Page Search the web using Bing")]
+        [return: Description("The web page search results as a BingWebPage object. Each result is separated by a new line.")]
         public async Task<List<BingWebPage>> BingWebPageSearchAsync(string query)
         {
             //TODO add site filter
