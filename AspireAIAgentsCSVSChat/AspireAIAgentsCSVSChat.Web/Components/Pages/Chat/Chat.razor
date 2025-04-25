@@ -83,7 +83,8 @@
    protected override void OnInitialized()  
    {  
        messages.Add(new(ChatRole.System, SystemPrompt));  
-       chatOptions.Tools = [AIFunctionFactory.Create(SearchAsync)];  
+       chatOptions.Tools = [AIFunctionFactory.Create(SearchAsync), 
+                            AIFunctionFactory.Create(AnotherPluginAsync)];
    }  
 
    private async Task AddUserMessageAsync(ChatMessage userMessage)  
@@ -149,6 +150,21 @@
        return results.Select(result =>  
            $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");  
    }  
+
+    [Description("Another plugin functionality")]
+    private async Task<IEnumerable<string>> AnotherPluginAsync(
+        [Description("The input for the plugin.")] string input,
+        [Description("Optional parameter for additional context.")] string? context = null)
+    {
+        await InvokeAsync(StateHasChanged);
+        // Simulate plugin logic
+        var results = new List<string>
+                {
+                    $"<result plugin=\"AnotherPlugin\" detail=\"Processed input: {input}\">{context}</result>"
+                };
+        return results;
+    }
+
 
    public void Dispose()  
        => currentResponseCancellation?.Cancel();  

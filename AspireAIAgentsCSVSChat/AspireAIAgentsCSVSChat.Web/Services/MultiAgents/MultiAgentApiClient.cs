@@ -2,6 +2,7 @@
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Embeddings;
 using OpenAI;
 
 namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
@@ -13,15 +14,15 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
         private readonly SemanticKernelServiceSettings _semanticKernelServiceSettings;
         private readonly IConfiguration _configuration;
 
-        public MultiAgentApiClient(HttpClient httpClient, AzureOpenAIClient openAIClient, IConfiguration configuration)
-        {
+       public MultiAgentApiClient(HttpClient httpClient, AzureOpenAIClient openAIClient, IConfiguration configuration)
+       {
             _httpClient = httpClient;
             _openAIClient = openAIClient;
             _configuration = configuration;
         }
 
-        public MultiAgentApiClient(HttpClient httpClient, AzureOpenAIClient openAIClient, SemanticKernelServiceSettings semanticKernelServiceSettings)
-        {
+       public MultiAgentApiClient(HttpClient httpClient, AzureOpenAIClient openAIClient, SemanticKernelServiceSettings semanticKernelServiceSettings)
+      {
             _httpClient = httpClient;
             _openAIClient = openAIClient;
             _semanticKernelServiceSettings = semanticKernelServiceSettings;

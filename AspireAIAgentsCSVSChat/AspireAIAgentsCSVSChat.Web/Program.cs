@@ -8,8 +8,16 @@ using AspireAIAgentsCSVSChat.Web.Services.MultiAgents;
 using AspireAIAgentsCSVSChat.Web.Services.Configuration;
 using Aspire.Azure.AI.OpenAI;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Azure.AI.OpenAI;
+using Microsoft.SemanticKernel.Embeddings;
+using Microsoft.SemanticKernel;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//// Add logging to the application
+//builder.Services.AddSingleton<ILogger<SemanticKernelService>>(sp =>
+//   sp.GetRequiredService<ILoggerFactory>().CreateLogger<SemanticKernelService>());
+
 builder.AddServiceDefaults();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
@@ -27,28 +35,19 @@ builder.Services.AddSingleton<SemanticSearch>();
 builder.Services.AddSingleton<IServiceProvider>(sp => sp);
 builder.AddSqliteDbContext<IngestionCacheDbContext>("ingestionCache");
 
+// Registering embedding generation service with a service collection.
+var services = new ServiceCollection();
+//#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+//builder.Services.AddOpenAITextEmbeddingGeneration("text-embedding-3-small");
+//#pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
 // Add MultiAgentApiClient Services
 builder.Services.AddSingleton<MultiAgentApiClient>();
+
 var connectionString = builder.Configuration.GetConnectionString("openai");
 
-// Assume the connection string is formatted like: "Endpoint=https://api.openai.com/;ApiKey=xxxx"
-if (!string.IsNullOrWhiteSpace(connectionString))
-{
-    // Assume the connection string is formatted like: "Endpoint=https://api.openai.com/;ApiKey=xxxx"  
-    var parameters = connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries);
-    var endpoint = parameters.FirstOrDefault(p => p.StartsWith("Endpoint=", StringComparison.OrdinalIgnoreCase))
-                                ?.Split('=')[1];
-    var key = parameters.FirstOrDefault(p => p.StartsWith("Key=", StringComparison.OrdinalIgnoreCase))
-                            ?.Split('=')[1];
-
-    builder.Services.Configure<SemanticKernelServiceSettings>(options =>
-    {
-        options.AzureOpenAISettings.Endpoint = string.IsNullOrWhiteSpace(endpoint) ? null : new Uri(endpoint);
-        options.AzureOpenAISettings.Key = key;
-    });
-}
-
 var app = builder.Build();
+
 IngestionCacheDbContext.Initialize(app.Services);
 
 app.MapDefaultEndpoints();

@@ -16,6 +16,12 @@ using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Azure.AI.OpenAI;
 using Aspire.Azure.AI.OpenAI;
 using Azure;
+using Microsoft.IdentityModel.Abstractions;
+// Added Microsoft.SemanticKernel.Memory (alpha-1.4.7)
+using Microsoft.SemanticKernel.Memory;
+using System.ComponentModel;
+using System.Text.Json;
+// Added Microsoft.SemanticKernel.Plugins.Memory (alpha-1.4.7)
 // Added Microsoft.SemanticKernel (1.4.7)
 
 namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
@@ -29,8 +35,8 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
         string endpoint = "";
         string key = "";
 
-        public SemanticKernelService(SemanticKernelServiceSettings settings)
-        {
+       public SemanticKernelService(SemanticKernelServiceSettings settings)
+       {
             _settings = settings;
 
             // Extract OpenAI settings from SemanticKernelServiceSettings
@@ -50,7 +56,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             _semanticKernel = builder.Build();
         }
 
-        public SemanticKernelService(IConfiguration configuration)
+       public SemanticKernelService(IConfiguration configuration)
         {
             // Get endpoint and key credential from configuration
 
@@ -95,9 +101,40 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
 
             // Configure the kernel with OpenAI settings using _openAIClient  
             builder.AddAzureOpenAIChatCompletion("gpt-4o-mini", endpoint, key);
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            builder.AddAzureOpenAITextEmbeddingGeneration("text-embedding-3-small", endpoint, key);
+#pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
             // Build the kernel  
             var kernel = builder.Build();
+
+            // Configure FunctionInvocationFilter
+            kernel.AutoFunctionInvocationFilters.Add(new AutoFunctionInvocationFilter(_logger));
+
+            // get the embeddings generator service
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            var embeddingGenerator = kernel.Services.GetRequiredService<ITextEmbeddingGenerationService>();
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+            // Create a text memory store and populate it with sample data
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            //var embeddingGeneration = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning disable SKEXP0050 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            VolatileMemoryStore memoryStore = new();
+#pragma warning restore SKEXP0050 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            SemanticTextMemory textMemory = new(memoryStore, embeddingGenerator);
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            string collectionName = "SemanticKernel";
+
+            await PopulateMemoryAsync(collectionName, textMemory);
+
+            // Add the text memory plugin to the kernel
+            MemoryPlugin memoryPlugin = new(collectionName, textMemory);
+            kernel.Plugins.AddFromObject(memoryPlugin, "Memory");
+
+            // Configure the agents
 
             ChatCompletionAgent ValidationPlanningAgent =
                 new()
@@ -184,6 +221,15 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                 Console.WriteLine($"# {content.Role} - {content.AuthorName ?? "*"}: '{content.Content}'");
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
             }
+
+            // Invoke chat prompt with auto invocation of functions enabled
+            var executionSettings = new OpenAIPromptExecutionSettings { FunctionChoiceBehavior = FunctionChoiceBehavior.Auto() };
+            var chatPrompt =
+            """
+            <message role="user">What is Semantic Kernel?</message>
+        """;
+
+            var response = await kernel.InvokePromptAsync(chatPrompt, new(executionSettings));
 
             // Return list of messages from the multiagent  
             return messages;
@@ -273,6 +319,88 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             // Dispose of any resources if necessary
             //_logger.LogInformation("Disposing the Semantic Kernel service...");
         }
-    }
 
+        /// <summary>
+        /// Utility to populate a text memory store with some sample data.
+        /// </summary>
+        private static async Task PopulateMemoryAsync(string collection, SemanticTextMemory textMemory)
+        {
+            string[] entries =
+            [
+                "Semantic Kernel is a lightweight, open-source development kit that lets you easily build AI agents and integrate the latest AI models into your C#, Python, or Java codebase. It serves as an efficient middleware that enables rapid delivery of enterprise-grade solutions.",
+                "Semantic Kernel is a new AI SDK, and a simple and yet powerful programming model that lets you add large language capabilities to your app in just a matter of minutes. It uses natural language prompting to create and execute semantic kernel AI tasks across multiple languages and platforms.",
+                "In this guide, you learned how to quickly get started with Semantic Kernel by building a simple AI agent that can interact with an AI service and run your code. To see more examples and learn how to build more complex AI agents, check out our in-depth samples.",
+                "The Semantic Kernel extension for Visual Studio Code makes it easy to design and test semantic functions.The extension provides an interface for designing semantic functions and allows you to test them with the push of a button with your existing models and data.",
+                "The kernel is the central component of Semantic Kernel.At its simplest, the kernel is a Dependency Injection container that manages all of the services and plugins necessary to run your AI application."
+            ];
+            foreach (var entry in entries)
+            {
+                await textMemory.SaveInformationAsync(
+                    collection: collection,
+                    text: entry,
+                    id: Guid.NewGuid().ToString());
+            }
+        }
+
+        /// <summary>
+        /// Plugin that provides a function to retrieve useful information from the memory.
+        /// </summary>
+        private sealed class MemoryPlugin(string collection, ISemanticTextMemory memory)
+        {
+            [KernelFunction]
+            [Description("Retrieve useful information to help answer a question.")]
+            public async Task<string> GetUsefulInformationAsync(
+                [Description("The question being asked")] string question)
+            {
+                List<MemoryQueryResult> memories = await memory
+                    .SearchAsync(collection, question)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return JsonSerializer.Serialize(memories.Select(x => x.Metadata.Text));
+            }
+        }
+
+        /// <summary>
+        /// Implementation of <see cref="IFunctionInvocationFilter"/> that logs the function invocation.
+        /// </summary>
+        public class AutoFunctionInvocationFilter(ILogger logger) : IAutoFunctionInvocationFilter
+        {
+            private readonly ILogger _logger = logger;
+
+            public async Task OnAutoFunctionInvocationAsync(AutoFunctionInvocationContext context, Func<AutoFunctionInvocationContext, Task> next)
+            {
+                // Example: get function information
+                var functionName = context.Function.Name;
+
+                // Example: get chat history
+                var chatHistory = context.ChatHistory;
+
+                // Example: get information about all functions which will be invoked
+                var functionCalls = Microsoft.SemanticKernel.FunctionCallContent.GetFunctionCalls(context.ChatHistory.Last());
+
+                // Example: get request sequence index
+                //this._logger.LogDebug("Request sequence index: {RequestSequenceIndex}", context.RequestSequenceIndex);
+
+                // Example: get function sequence index
+                //this._logger.LogDebug("Function sequence index: {FunctionSequenceIndex}", context.FunctionSequenceIndex);
+
+                // Example: get total number of functions which will be called
+                //this._logger.LogDebug("Total number of functions: {FunctionCount}", context.FunctionCount);
+
+                // Calling next filter in pipeline or function itself.
+                // By skipping this call, next filters and function won't be invoked, and function call loop will proceed to the next function.
+                await next(context);
+
+                // Example: get function result
+                var result = context.Result;
+
+                // Example: override function result value
+                context.Result = new FunctionResult(context.Result, "Result from auto function invocation filter");
+
+                // Example: Terminate function invocation
+                context.Terminate = true;
+            }
+        }
+    }
 }
