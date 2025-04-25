@@ -31,6 +31,9 @@ builder.AddSqliteDbContext<IngestionCacheDbContext>("ingestionCache");
 builder.Services.AddSingleton<MultiAgentApiClient>();
 var connectionString = builder.Configuration.GetConnectionString("openai");
 
+// Add Logging 
+builder.Services.AddLogging(builder => builder.AddConsole());
+
 // Assume the connection string is formatted like: "Endpoint=https://api.openai.com/;ApiKey=xxxx"
 if (!string.IsNullOrWhiteSpace(connectionString))
 {
