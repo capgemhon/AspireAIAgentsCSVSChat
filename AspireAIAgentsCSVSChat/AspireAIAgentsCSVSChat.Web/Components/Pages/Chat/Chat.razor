@@ -57,8 +57,8 @@
     }
 }
 
-@code {  
-   private const string SystemPrompt = @"  
+@code {
+    private const string SystemPrompt = @"  
        You are an CSV assistant who answers questions about information you retrieve.
        Use only simple markdown to format your responses.
        You are able to fully check or analyze whole external documents and process them if you can to see if this document is compliant or not.
@@ -73,82 +73,104 @@
        Always include the citation in your response if there are results.   
        ";  
 
-   private readonly ChatOptions chatOptions = new();  
-   private readonly List<ChatMessage> messages = new();  
-   private CancellationTokenSource? currentResponseCancellation;  
-   private ChatMessage? currentResponseMessage;  
-   private ChatInput? chatInput;  
-   private ChatSuggestions? chatSuggestions;  
+    private readonly ChatOptions chatOptions = new();  
+    private readonly List<ChatMessage> messages = new();  
+    private CancellationTokenSource? currentResponseCancellation;  
+    private ChatMessage? currentResponseMessage;  
+    private ChatInput? chatInput;  
+    private ChatSuggestions? chatSuggestions;
+    private ChatMessage? _userMessage;
 
-   protected override void OnInitialized()  
-   {  
-       messages.Add(new(ChatRole.System, SystemPrompt));  
-       chatOptions.Tools = [AIFunctionFactory.Create(SearchAsync)];  
-   }  
+    protected override void OnInitialized()  
+    {  
+        messages.Add(new(ChatRole.System, SystemPrompt));  
+        chatOptions.Tools = [AIFunctionFactory.Create(SearchAsync),
+            AIFunctionFactory.Create(SearchMultiAgentAsync)];  
+    }  
 
-   private async Task AddUserMessageAsync(ChatMessage userMessage)  
-   {  
-       CancelAnyCurrentResponse();  
+    private async Task AddUserMessageAsync(ChatMessage userMessage)  
+    {
+        // Assign the user message to the _userMessage field for later use
+        _userMessage = userMessage;
+        CancelAnyCurrentResponse();  
 
-       // Add the user message to the conversation  
-       messages.Add(userMessage);  
-       chatSuggestions?.Clear();  
-       await chatInput!.FocusAsync();  
+        // Add the user message to the conversation  
+        messages.Add(userMessage);  
+        chatSuggestions?.Clear();  
+        await chatInput!.FocusAsync();  
 
-       // Stream and display a new response from the IChatClient  
-       var responseText = new TextContent("");  
-       currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);  
-       currentResponseCancellation = new();  
+        // Stream and display a new response from the IChatClient  
+        var responseText = new TextContent("");  
+        currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);  
+        currentResponseCancellation = new();  
 
-       await foreach (var update in ChatClient.GetStreamingResponseAsync([.. messages], chatOptions, currentResponseCancellation.Token))
-       {
+        await foreach (var update in ChatClient.GetStreamingResponseAsync([.. messages], chatOptions, currentResponseCancellation.Token))
+        {
             messages.AddMessages(update, filter: c => c is not TextContent);
             responseText.Text += update.Text;
             ChatMessageItem.NotifyChanged(currentResponseMessage);
-       }
+        }
 
-       // Call the GetMultiAgentResponseAsync method
-       string aiMultiAgentResponses = await MultiAgentApiClient.GetMultiAgentResponseAsync(responseText.Text);
-       messages.Add(new ChatMessage(ChatRole.Assistant, new TextContent(aiMultiAgentResponses).Text));
-       ChatMessageItem.NotifyChanged(currentResponseMessage);
+        // Store the final response in the conversation, and begin getting suggestions
+        messages.Add(currentResponseMessage!);
+        currentResponseMessage = null;
+        chatSuggestions?.Update(messages);
+    }  
 
-       // Store the final response in the conversation, and begin getting suggestions  
-       messages.Add(currentResponseMessage!);  
-       currentResponseMessage = null;  
-       chatSuggestions?.Update(messages);  
-   }  
+    private void CancelAnyCurrentResponse()  
+    {  
+        // If a response was cancelled while streaming, include it in the conversation so it's not lost  
+        if (currentResponseMessage is not null)  
+        {  
+            messages.Add(currentResponseMessage);  
+        }  
 
-   private void CancelAnyCurrentResponse()  
-   {  
-       // If a response was cancelled while streaming, include it in the conversation so it's not lost  
-       if (currentResponseMessage is not null)  
-       {  
-           messages.Add(currentResponseMessage);  
-       }  
+        currentResponseCancellation?.Cancel();  
+        currentResponseMessage = null;  
+    }  
 
-       currentResponseCancellation?.Cancel();  
-       currentResponseMessage = null;  
-   }  
+    private async Task ResetConversationAsync()  
+    {  
+        CancelAnyCurrentResponse();  
+        messages.Clear();  
+        messages.Add(new(ChatRole.System, SystemPrompt));  
+        chatSuggestions?.Clear();  
+        await chatInput!.FocusAsync();  
+    }  
 
-   private async Task ResetConversationAsync()  
-   {  
-       CancelAnyCurrentResponse();  
-       messages.Clear();  
-       messages.Add(new(ChatRole.System, SystemPrompt));  
-       chatSuggestions?.Clear();  
-       await chatInput!.FocusAsync();  
-   }  
+    [Description("Searches for information using a phrase or keyword")]  
+    private async Task<IEnumerable<string>> SearchAsync(  
+        [Description("The phrase to search for.")] string searchPhrase,  
+        [Description("If possible, specify the filename to search that file only. If not provided or empty, the search includes all files.")] string? filenameFilter = null)  
+    {  
+        await InvokeAsync(StateHasChanged);  
+        var results = await Search.SearchAsync(searchPhrase, filenameFilter, maxResults: 5);  
+        return results.Select(result =>  
+            $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");  
+    }  
 
-   [Description("Searches for information using a phrase or keyword")]  
-   private async Task<IEnumerable<string>> SearchAsync(  
-       [Description("The phrase to search for.")] string searchPhrase,  
-       [Description("If possible, specify the filename to search that file only. If not provided or empty, the search includes all files.")] string? filenameFilter = null)  
-   {  
-       await InvokeAsync(StateHasChanged);  
-       var results = await Search.SearchAsync(searchPhrase, filenameFilter, maxResults: 5);  
-       return results.Select(result =>  
-           $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");  
-   }  
+    [Description("When user types in @process, run the multiagent services to validate an input")]
+    private async Task<IEnumerable<string>> SearchMultiAgentAsync(
+       [Description("If possible, specify the filename to process that file only. If not provided or empty, the search includes all files.")] string? filenameFilter = null)
+    {
+        await InvokeAsync(StateHasChanged);
+
+        // Call the GetMultiAgentResponseAsync method
+        string aiMultiAgentResponses = await MultiAgentApiClient.GetMultiAgentResponseAsync(_userMessage.Contents.Last().ToString());
+        var message = new ChatMessage(ChatRole.Assistant, new TextContent(aiMultiAgentResponses).Text);
+        messages.Add(message);
+        ChatMessageItem.NotifyChanged(message);
+
+        var results = message;
+
+        // Convert the string into a single-element IEnumerable
+        IEnumerable<string> result = new List<string> { aiMultiAgentResponses };
+
+        // Wrap the IEnumerable in a Task
+        return await Task.FromResult(result);
+        // return results.Select(result =>
+        //     $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");
+    }
 
    public void Dispose()  
        => currentResponseCancellation?.Cancel();  
