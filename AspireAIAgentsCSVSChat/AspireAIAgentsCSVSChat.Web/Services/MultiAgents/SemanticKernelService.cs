@@ -50,8 +50,9 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             _semanticKernel = builder.Build();
         }
 
-        public SemanticKernelService(IConfiguration configuration)
+        public SemanticKernelService(IConfiguration configuration, ILogger<SemanticKernelService> logger)
         {
+            _logger = logger;
             // Get endpoint and key credential from configuration
 
             var connectionString = configuration.GetConnectionString("openai");
@@ -181,12 +182,13 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             {
                 messages.Add(content);
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
+                _logger.LogInformation($"# {content.Role} - {content.AuthorName ?? "*"}: '{content.Content}'");
                 Console.WriteLine($"# {content.Role} - {content.AuthorName ?? "*"}: '{content.Content}'");
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
             }
 
             // Return list of messages from the multiagent  
-            return messages;
+            return messages.TakeLast(1).ToList();
         }
 
 #pragma warning disable SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.

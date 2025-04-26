@@ -10,33 +10,34 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
     {
         private readonly HttpClient _httpClient;
         private readonly AzureOpenAIClient _openAIClient;
-        private readonly SemanticKernelServiceSettings _semanticKernelServiceSettings;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<SemanticKernelService> _logger;
 
-        public MultiAgentApiClient(HttpClient httpClient, AzureOpenAIClient openAIClient, IConfiguration configuration)
+        public MultiAgentApiClient(HttpClient httpClient, AzureOpenAIClient openAIClient, IConfiguration configuration, ILogger<SemanticKernelService> logger)
         {
             _httpClient = httpClient;
             _openAIClient = openAIClient;
             _configuration = configuration;
+            _logger = logger;
         }
 
-        public MultiAgentApiClient(HttpClient httpClient, AzureOpenAIClient openAIClient, SemanticKernelServiceSettings semanticKernelServiceSettings)
+        public MultiAgentApiClient(HttpClient httpClient, AzureOpenAIClient openAIClient, ILogger<SemanticKernelService> logger)
         {
             _httpClient = httpClient;
             _openAIClient = openAIClient;
-            _semanticKernelServiceSettings = semanticKernelServiceSettings;
+            _logger = logger;
         }
 
 
         public async Task<string> GetMultiAgentResponseAsync(string userInput)
         {
-            // Assuming a configuration object is required, pass it from _semanticKernelServiceSettings.
-            //if (_semanticKernelServiceSettings == null)
-            //{
-            //    throw new InvalidOperationException("SemanticKernelServiceSettings is not initialized.");
-            //}
+            // Assuming a configuration object is required.
+            if (_configuration == null)
+            {
+                throw new InvalidOperationException("_configuration is not initialized.");
+            }
 
-            SemanticKernelService semanticKernelService = new SemanticKernelService(_configuration);
+            SemanticKernelService semanticKernelService = new SemanticKernelService(_configuration, _logger);
             List<ChatMessageContent> outputMessage = await semanticKernelService.GetDemoResponse(userInput);
 
             string outputString = "";
