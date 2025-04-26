@@ -104,11 +104,24 @@
         currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);  
         currentResponseCancellation = new();  
 
-        await foreach (var update in ChatClient.GetStreamingResponseAsync([.. messages], chatOptions, currentResponseCancellation.Token))
+        try
         {
-            messages.AddMessages(update, filter: c => c is not TextContent);
-            responseText.Text += update.Text;
-            ChatMessageItem.NotifyChanged(currentResponseMessage);
+            await foreach (var update in ChatClient.GetStreamingResponseAsync([.. messages], chatOptions, currentResponseCancellation.Token))
+            {
+                messages.AddMessages(update, filter: c => c is not TextContent);
+                responseText.Text += update.Text;
+                ChatMessageItem.NotifyChanged(currentResponseMessage);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Handle cancellation gracefully
+            Console.WriteLine("Streaming response was canceled.");
+        }
+        catch (Exception ex)
+        {
+            // Log or handle other exceptions
+            Console.WriteLine($"An error occurred: {ex.Message}");
         }
 
         // Store the final response in the conversation, and begin getting suggestions
