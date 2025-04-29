@@ -129,7 +129,6 @@
             dataUploader.GenerateEmbeddingsAndUpload("software-documentation", textParagraphs);  
         }
 
-
     }
 
     private async Task AddUserMessageAsync(ChatMessage userMessage)  
@@ -201,7 +200,7 @@
         [Description("If possible, specify the filename to search that file only. If not provided or empty, the search includes all files.")] string? filenameFilter = null)  
     {  
         await InvokeAsync(StateHasChanged);  
-        var results = await Search.SearchAsync(searchPhrase, filenameFilter, maxResults: 5);  
+        var results = await Search.SearchAsync(searchPhrase, filenameFilter, maxResults: 10);  
         return results.Select(result =>  
             $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");  
     }  
