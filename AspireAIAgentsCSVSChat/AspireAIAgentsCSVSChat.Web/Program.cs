@@ -25,6 +25,10 @@ using Microsoft.KernelMemory.DocumentStorage;
 using Microsoft.KernelMemory.AI.OpenAI;
 using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
+using Microsoft.SemanticKernel;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.Extensions.Azure;
+using Elastic.Transport;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
@@ -137,6 +141,23 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         return new AzureOpenAITextEmbeddingGenerator(azureOpenAIConfig);
 #pragma warning restore KMEXP01 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     });
+
+    // With the corrected code below:  
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+    // Register Azure OpenAI text embedding generation service
+    var kernelBuilder = Kernel.CreateBuilder()
+        .AddAzureOpenAITextEmbeddingGeneration("text-embedding-3-small", endpoint, key);
+#pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+    // Register the data uploader.
+    kernelBuilder.Services.AddSingleton<IVectorStore>(vectorStore);
+    kernelBuilder.Services.AddSingleton<DataUploader>();
+
+    // Build the kernel and get the data uploader.
+    Kernel kernel = kernelBuilder.Build();
+
+    // Build the kernel and get the data uploader.
+    builder.Services.AddSingleton(kernel);
 }
 
 var app = builder.Build();
