@@ -67,6 +67,7 @@
     private const string SystemPrompt = @"  
        You are an CSV assistant who answers questions about information you retrieve.
        Use only simple markdown to format your responses.
+       If user types in @process, you will run SearchMultiAgentAsync, and if user types in @memory, you will run SearchMemoryAsync otherwise run SearchAsync.
        You are able to fully check or analyze whole external documents and process them if you can to see if this document is compliant or not.
        You can analyse any provided snippets or key sections of the report
        Do not answer questions about anything else.  
@@ -93,36 +94,40 @@
     private ChatMessage? _userMessage;
 
     protected override void OnInitialized()  
-    {  
-        messages.Add(new(ChatRole.System, SystemPrompt));  
-        chatOptions.Tools = [AIFunctionFactory.Create(SearchAsync),
-    AIFunctionFactory.Create(SearchMultiAgentAsync)];  
+       {  
+           messages.Add(new(ChatRole.System, SystemPrompt));  
+           chatOptions.Tools = [AIFunctionFactory.Create(SearchAsync),
+                                AIFunctionFactory.Create(SearchMultiAgentAsync),
+                                AIFunctionFactory.Create(SearchMemoryAsync)];
 
-        // azureOpenAIEmbeddingConfig.Endpoint = "https://team-cnca.openai.azure.com/";
-        // azureOpenAIEmbeddingConfig.APIKey = "9sRuOPjJkuPOQ6JjmXi7HAymODjcZnlHxfuhHz9vgij6DcpFfE9hJQQJ99BDACmepeSXJ3w3AAABACOGJi2N";
-        // azureOpenAIEmbeddingConfig.Deployment = "gpt-4o-mini";
+           // azureOpenAIEmbeddingConfig.Endpoint = "https://team-cnca.openai.azure.com/";
+           // azureOpenAIEmbeddingConfig.APIKey = "9sRuOPjJkuPOQ6JjmXi7HAymODjcZnlHxfuhHz9vgij6DcpFfE9hJQQJ99BDACmepeSXJ3w3AAABACOGJi2N";
+           // azureOpenAIEmbeddingConfig.Deployment = "gpt-4o-mini";
 
-        var embeddingGenerator = ServiceProvider.GetService<ITextEmbeddingGenerator>();
+           var embeddingGenerator = ServiceProvider.GetService<ITextEmbeddingGenerator>();
 
-        if (embeddingGenerator == null)
-        {
-            throw new InvalidOperationException("ITextEmbeddingGenerator was not registered properly.");
-        }
+           if (embeddingGenerator == null)
+           {
+               throw new InvalidOperationException("ITextEmbeddingGenerator was not registered properly.");
+           }
 
-        // var memory = new KernelMemoryBuilder()
-        //     .AddIngestionEmbeddingGenerator(embeddingGenerator)
-        //     .WithoutDefaultHandlers()
-        //     .WithCustomPromptProvider(new CSVSPromptBuilder())
-        //     .WithSimpleVectorDb()
-        //     //.WithOpenAIDefaults(Environment.GetEnvironmentVariable("AzureOpenAI_ApiKey"))
-        //     // .WithOpenAI(openAICfg)
-        //     // .WithAzureOpenAITextGeneration(azureOpenAITextConfig)
-        //     //.WithAzureOpenAITextEmbeddingGeneration(azureOpenAIEmbeddingConfig)
-        //     .Build<MemoryServerless>();
+           var kernel = Kernel.CreateBuilder()
+               .Build();
 
-        // memory.ImportDocumentAsync("file5-NASA-news.pdf");
+           // var memory = new KernelMemoryBuilder()
+           //     .AddIngestionEmbeddingGenerator(embeddingGenerator)
+           //     .WithoutDefaultHandlers()
+           //     .WithCustomPromptProvider(new CSVSPromptBuilder())
+           //     .WithSimpleVectorDb()
+           //     //.WithOpenAIDefaults(Environment.GetEnvironmentVariable("AzureOpenAI_ApiKey"))
+           //     // .WithOpenAI(openAICfg)
+           //     // .WithAzureOpenAITextGeneration(azureOpenAITextConfig)
+           //     //.WithAzureOpenAITextEmbeddingGeneration(azureOpenAIEmbeddingConfig)
+           //     .Build<MemoryServerless>();
 
-    }  
+           // memory.ImportDocumentAsync("file5-NASA-news.pdf");
+
+       }
 
     private async Task AddUserMessageAsync(ChatMessage userMessage)  
     {
@@ -187,7 +192,7 @@
         await chatInput!.FocusAsync();  
     }  
 
-    [Description("Searches for information using a phrase or keyword")]  
+    [Description("Searches and informs about information using a phrase or keyword or an existing file")]  
     private async Task<IEnumerable<string>> SearchAsync(  
         [Description("The phrase to search for.")] string searchPhrase,  
         [Description("If possible, specify the filename to search that file only. If not provided or empty, the search includes all files.")] string? filenameFilter = null)  
@@ -198,7 +203,7 @@
             $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");  
     }  
 
-    [Description("When user types in @process, run the multiagent services to validate an input")]
+    [Description("When user types in command @process, run the multiagent services to validate an input")]
     private async Task<IEnumerable<string>> SearchMultiAgentAsync(
        [Description("If possible, specify the filename to process that file only. If not provided or empty, the search includes all files.")] string? filenameFilter = null)
     {
@@ -215,16 +220,36 @@
         // Convert the string into a single-element IEnumerable
         IEnumerable<string> result = new List<string> { aiMultiAgentResponses };
 
-        CSVSPromptBuilder csvs = new CSVSPromptBuilder();
-        var kernel = Kernel.CreateBuilder().Build();
-
-        await csvs.IngestDataIntoInMemoryVectorStoreAsync(kernel, ServiceProvider);
+        // // Combine the multi-agent response with search results
+        // IEnumerable<string> combinedResults = searchResults.Aggregate(aiMultiAgentResponses);
 
         // Wrap the IEnumerable in a Task
         return await Task.FromResult(result);
         // return results.Select(result =>
         //     $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");
     }
+
+    [Description("When user types in command @memory, run the memory vector search services to validate an input")]
+    private async Task<IEnumerable<string>> SearchMemoryAsync(
+       [Description("The question query to search for.")] string question,  
+             [Description("If possible, specify the query to process the memory vector search. If not provided or empty, the query is just do a general query.")] string? filenameFilter = null)  
+          {  
+              await InvokeAsync(StateHasChanged);  
+
+              // Call the Search Memory Vector method  
+
+              MemoryVectorSearch memoryVectorSearch = new MemoryVectorSearch();  
+              var kernel = Kernel.CreateBuilder().Build();  
+
+              await memoryVectorSearch.IngestDataIntoInMemoryVectorStoreAsync(kernel, ServiceProvider);  
+
+              var result = await memoryVectorSearch.SearchAnInMemoryVectorStoreAsync(ServiceProvider, question);  
+
+              // Wrap the result in an IEnumerable<string>  
+              return new List<string> { result };  
+              // return results.Select(result =>  
+              //     $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");  
+          }
 
     public void Dispose()  
         => currentResponseCancellation?.Cancel();

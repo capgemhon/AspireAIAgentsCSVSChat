@@ -5,6 +5,7 @@ using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.SemanticKernel;
 using Microsoft.KernelMemory.AI;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AspireAIAgentsCSVSChat.Web
 {
@@ -39,109 +40,46 @@ namespace AspireAIAgentsCSVSChat.Web
                     return this._fallbackProvider.ReadPrompt(promptName);
             }
         }
-    
 
-      /// <summary>
-    /// Example showing how to ingest data into an in-memory vector store.
-    /// </summary>
-        public async Task IngestDataIntoInMemoryVectorStoreAsync(Kernel _kernel, IServiceProvider serviceProvider)
+        /// <summary>  
+        /// Incorporate the VerificationPrompt into an agent for processing user input.  
+        /// </summary>  
+        public async Task<string> UseVerificationPromptAsync(IServiceProvider serviceProvider, string userInput, string facts)
         {
-            // Construct the vector store and get the collection.
-            var vectorStore = new InMemoryVectorStore();
-            var collection = vectorStore.GetCollection<string, Glossary>("skglossary");
-
-            // Suppress the diagnostic warning SKEXP0001 for the usage of ITextEmbeddingGenerationService.  
-#pragma warning disable SKEXP0001
+            // Get the required text embedding generation service.  
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             var textEmbeddingGenerationService = serviceProvider.GetRequiredService<ITextEmbeddingGenerationService>();
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
-            // Ingest data into the collection.
-            await IngestDataIntoVectorStoreAsync(collection, textEmbeddingGenerationService);
+            // Replace placeholders in the VerificationPrompt with actual values.  
+            var prompt = VerificationPrompt
+                .Replace("{{$facts}}", facts)
+                .Replace("{{$input}}", userInput);
 
-            // Retrieve an item from the collection and write it to the console.
-            var record = await collection.GetAsync("4");
-            Console.WriteLine(record!.Definition);
+            // Generate an embedding for the prompt.  
+            var promptEmbedding = await textEmbeddingGenerationService.GenerateEmbeddingAsync(prompt);
+
+            // Simulate processing the prompt with an AI agent (this would typically involve calling an AI model).  
+            // For now, we return the prompt as a placeholder for the agent's response.  
+            return await Task.FromResult(prompt);
         }
 
-        /// <summary>
-        /// Ingest data into the given collection.
-        /// </summary>
-        /// <param name="collection">The collection to ingest data into.</param>
-        /// <param name="textEmbeddingGenerationService">The service to use for generating embeddings.</param>
-        /// <returns>The keys of the upserted records.</returns>
-        internal static async Task<IEnumerable<string>> IngestDataIntoVectorStoreAsync(
-            IVectorStoreRecordCollection<string, Glossary> collection,
-            ITextEmbeddingGenerationService textEmbeddingGenerationService)
-        {
-            // Create the collection if it doesn't exist.
-            await collection.CreateCollectionIfNotExistsAsync();
+        //public async Task<string> UseVerificationPromptWithSemanticKernelAsync(IServiceProvider serviceProvider, string userInput, string facts, Kernel kernel)
+        //{
+        //    // Replace placeholders in the VerificationPrompt with actual values.  
+        //    var prompt = VerificationPrompt
+        //        .Replace("{{$facts}}", facts)
+        //        .Replace("{{$input}}", userInput);
 
-            // Create glossary entries and generate embeddings for them.
-            var glossaryEntries = CreateGlossaryEntries().ToList();
-            var tasks = glossaryEntries.Select(entry => Task.Run(async () =>
-            {
-                entry.DefinitionEmbedding = await textEmbeddingGenerationService.GenerateEmbeddingAsync(entry.Definition);
-            }));
-            await Task.WhenAll(tasks);
+        //    // Create a semantic function using the kernel and the prompt.  
+        //    var semanticFunction = kernel.(prompt);
 
-            // Upsert the glossary entries into the collection and return their keys.
-            var upsertedKeysTasks = glossaryEntries.Select(x => collection.UpsertAsync(x));
-            return await Task.WhenAll(upsertedKeysTasks);
-        }
+        //    // Invoke the semantic function with the user input.  
+        //    var result = await semanticFunction.InvokeAsync(userInput);
 
-        /// <summary>
-        /// Create some sample glossary entries.
-        /// </summary>
-        /// <returns>A list of sample glossary entries.</returns>
-        private static IEnumerable<Glossary> CreateGlossaryEntries()
-        {
-            yield return new Glossary
-            {
-                Key = "1",
-                Category = "Software",
-                Term = "API",
-                Definition = "Application Programming Interface. A set of rules and specifications that allow software components to communicate and exchange data."
-            };
-
-            yield return new Glossary
-            {
-                Key = "2",
-                Category = "Software",
-                Term = "SDK",
-                Definition = "Software development kit. A set of libraries and tools that allow software developers to build software more easily."
-            };
-
-            yield return new Glossary
-            {
-                Key = "3",
-                Category = "SK",
-                Term = "Connectors",
-                Definition = "Semantic Kernel Connectors allow software developers to integrate with various services providing AI capabilities, including LLM, AudioToText, TextToAudio, Embedding generation, etc."
-            };
-
-            yield return new Glossary
-            {
-                Key = "4",
-                Category = "SK",
-                Term = "Semantic Kernel",
-                Definition = "Semantic Kernel is a set of libraries that allow software developers to more easily develop applications that make use of AI experiences."
-            };
-
-            yield return new Glossary
-            {
-                Key = "5",
-                Category = "AI",
-                Term = "RAG",
-                Definition = "Retrieval Augmented Generation - a term that refers to the process of retrieving additional data to provide as context to an LLM to use when generating a response (completion) to a user’s question (prompt)."
-            };
-
-            yield return new Glossary
-            {
-                Key = "6",
-                Category = "AI",
-                Term = "LLM",
-                Definition = "Large language model. A type of artificial ingelligence algorithm that is designed to understand and generate human language."
-            };
-        }
+        //    // Return the result from the semantic kernel.  
+        //    return result.Result;
+        //}
     }
 
     /// <summary>
