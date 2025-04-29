@@ -231,25 +231,25 @@
 
     [Description("When user types in command @memory, run the memory vector search services to validate an input")]
     private async Task<IEnumerable<string>> SearchMemoryAsync(
-       [Description("The question query to search for.")] string question,  
-             [Description("If possible, specify the query to process the memory vector search. If not provided or empty, the query is just do a general query.")] string? filenameFilter = null)  
-          {  
-              await InvokeAsync(StateHasChanged);  
+        [Description("The question query to search for.")] string question,  
+        [Description("If possible, specify the query to process the memory vector search. If not provided or empty, the query is just do a general query.")] string? filenameFilter = null)  
+    {  
+        await InvokeAsync(StateHasChanged);  
 
-              // Call the Search Memory Vector method  
+        // Call the Search Memory Vector method  
 
-              MemoryVectorSearch memoryVectorSearch = new MemoryVectorSearch();  
-              var kernel = Kernel.CreateBuilder().Build();  
+        MemoryVectorSearch memoryVectorSearch = new MemoryVectorSearch();  
+        var kernel = Kernel.CreateBuilder().Build();  
 
-              await memoryVectorSearch.IngestDataIntoInMemoryVectorStoreAsync(kernel, ServiceProvider);  
+        await memoryVectorSearch.IngestDataIntoInMemoryVectorStoreAsync(kernel, ServiceProvider);  
 
-              var result = await memoryVectorSearch.SearchAnInMemoryVectorStoreAsync(ServiceProvider, question);  
+        var result = await memoryVectorSearch.SearchAnInMemoryVectorStoreAsync(ServiceProvider, question);  
 
-              // Wrap the result in an IEnumerable<string>  
-              return new List<string> { result };  
-              // return results.Select(result =>  
-              //     $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");  
-          }
+        // Wrap the result in an IEnumerable<string>  
+        return new List<string> { result };  
+        // return results.Select(result =>  
+        //     $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");  
+    }
 
     public void Dispose()  
         => currentResponseCancellation?.Cancel();

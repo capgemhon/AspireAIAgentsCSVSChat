@@ -15,7 +15,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services
         {
             // Construct the vector store and get the collection.
             var vectorStore = new InMemoryVectorStore();
-            var collection = vectorStore.GetCollection<string, Glossary>("skglossary");
+            var collection = vectorStore.GetCollection<string, Glossary>("softwareglossary");
 
             // Suppress the diagnostic warning SKEXP0001 for the usage of ITextEmbeddingGenerationService.  
 #pragma warning disable SKEXP0001
@@ -65,48 +65,32 @@ namespace AspireAIAgentsCSVSChat.Web.Services
             {
                 Key = "1",
                 Category = "Software",
-                Term = "API",
-                Definition = "Application Programming Interface. A set of rules and specifications that allow software components to communicate and exchange data."
+                Term = "SOUP",
+                Definition = "As per IEC62304 ;Software Of Unknown Provenance (or Pedigree). SOFTWARE ITEM \r\nthat is already developed and generally available and that has not been developed for \r\nthe purpose of being incorporated into the MEDICAL DEVICE."
             };
 
             yield return new Glossary
             {
                 Key = "2",
                 Category = "Software",
-                Term = "SDK",
-                Definition = "Software development kit. A set of libraries and tools that allow software developers to build software more easily."
+                Term = "OTS",
+                Definition = "As per IEC62304 ;“off the-shelf software “or SOFTWARE ITEM previously developed for \r\nwhich adequate records of the development PROCESSES are not available. Means it \r\ncannot be claimed that the medical device software lifecycle controls are followed also \r\nparticular type of SOUP."
             };
 
             yield return new Glossary
             {
                 Key = "3",
-                Category = "SK",
-                Term = "Connectors",
-                Definition = "Semantic Kernel Connectors allow software developers to integrate with various services providing AI capabilities, including LLM, AudioToText, TextToAudio, Embedding generation, etc."
+                Category = "Software",
+                Term = "COTS",
+                Definition = "OTS software that comes from a commercial supplier.\r\n"
             };
 
             yield return new Glossary
             {
                 Key = "4",
-                Category = "SK",
+                Category = "Software",
                 Term = "Semantic Kernel",
-                Definition = "Semantic Kernel is a set of libraries that allow software developers to more easily develop applications that make use of AI experiences."
-            };
-
-            yield return new Glossary
-            {
-                Key = "5",
-                Category = "AI",
-                Term = "RAG",
-                Definition = "Retrieval Augmented Generation - a term that refers to the process of retrieving additional data to provide as context to an LLM to use when generating a response (completion) to a user’s question (prompt)."
-            };
-
-            yield return new Glossary
-            {
-                Key = "6",
-                Category = "AI",
-                Term = "LLM",
-                Definition = "Large language model. A type of artificial ingelligence algorithm that is designed to understand and generate human language."
+                Definition = "As per FDA ;confirmation by examination and provision of objective evidence that \r\nsoftware specifications conform to user needs and intended uses, and that the \r\nparticular requirements implemented through software can be consistently fulfilled"
             };
         }
 
@@ -171,7 +155,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services
         {
             // Construct the vector store and get the collection.
             var vectorStore = new InMemoryVectorStore();
-            var collection = vectorStore.GetCollection<string, Glossary>("skglossary");
+            var collection = vectorStore.GetCollection<string, Glossary>("softwareglossary");
 
             var textEmbeddingGenerationService = serviceProvider.GetRequiredService<ITextEmbeddingGenerationService>();
 
