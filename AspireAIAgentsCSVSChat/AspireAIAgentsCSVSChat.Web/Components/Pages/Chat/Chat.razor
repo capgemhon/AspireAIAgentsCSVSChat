@@ -215,7 +215,6 @@
         // Call the GetMultiAgentResponseAsync method
         string aiMultiAgentResponses = await MultiAgentApiClient.GetMultiAgentResponseAsync(_userMessage.Contents.Last().ToString());
         var message = new ChatMessage(ChatRole.Assistant, new Microsoft.Extensions.AI.TextContent(aiMultiAgentResponses).Text);
-        messages.Add(message);
         ChatMessageItem.NotifyChanged(message);
 
         var results = message;
