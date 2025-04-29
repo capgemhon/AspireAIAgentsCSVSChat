@@ -105,11 +105,11 @@
         // azureOpenAIEmbeddingConfig.APIKey = "9sRuOPjJkuPOQ6JjmXi7HAymODjcZnlHxfuhHz9vgij6DcpFfE9hJQQJ99BDACmepeSXJ3w3AAABACOGJi2N";
         // azureOpenAIEmbeddingConfig.Deployment = "gpt-4o-mini";
 
-        var embeddingGenerator = ServiceProvider.GetService<ITextEmbeddingGenerator>();
+        var embeddingGenerator = ServiceProvider.GetService<IEmbeddingGenerator>();
 
         if (embeddingGenerator == null)
         {
-            throw new InvalidOperationException("ITextEmbeddingGenerator was not registered properly.");
+            throw new InvalidOperationException("IEmbeddingGenerator was not registered properly.");
         }
 
         // Initialize the embedding generator for the DataUploader and enforce into Semantic Kernel
@@ -127,6 +127,7 @@
 
             dataUploader.GenerateEmbeddingsAndUpload("software-documentation", textParagraphs);  
         }
+
 
     }
 

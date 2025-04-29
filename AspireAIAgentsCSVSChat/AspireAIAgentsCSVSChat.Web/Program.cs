@@ -152,6 +152,10 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     // Register the data uploader.
     kernelBuilder.Services.AddSingleton<IVectorStore>(vectorStore);
     kernelBuilder.Services.AddSingleton<DataUploader>();
+    var embeddingGenerator = builder.Services.BuildServiceProvider().GetRequiredService<IEmbeddingGenerator>();
+    kernelBuilder.Services.AddSingleton<IEmbeddingGenerator>(embeddingGenerator);
+    kernelBuilder.Services.AddScoped<DataIngestor>();
+    kernelBuilder.Services.AddSingleton<SemanticSearch>();
 
     // Build the kernel and get the data uploader.
     Kernel kernel = kernelBuilder.Build();
