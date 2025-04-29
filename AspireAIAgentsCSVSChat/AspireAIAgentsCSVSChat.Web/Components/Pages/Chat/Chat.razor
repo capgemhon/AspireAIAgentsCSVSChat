@@ -7,6 +7,12 @@
 @implements IDisposable  
 @using Microsoft.AspNetCore.Hosting
 @using AspireAIAgentsCSVSChat.Web.Services.Ingestion
+@using Microsoft.SemanticKernel
+@using Microsoft.KernelMemory
+@using Microsoft.KernelMemory.AI
+@using Microsoft.KernelMemory.MemoryStorage.DevTools
+@using System.Diagnostics
+@using UglyToad.PdfPig
 @inject IServiceProvider ServiceProvider
 
 <PageTitle>Chat</PageTitle>  
@@ -73,6 +79,11 @@
        Always include the citation in your response if there are results.   
        ";  
 
+    OpenAIConfig openAIConfig = new OpenAIConfig();
+    AzureOpenAIConfig azureOpenAITextConfig = new AzureOpenAIConfig();
+    AzureOpenAIConfig azureOpenAIEmbeddingConfig = new AzureOpenAIConfig();
+
+
     private readonly ChatOptions chatOptions = new();  
     private readonly List<ChatMessage> messages = new();  
     private CancellationTokenSource? currentResponseCancellation;  
@@ -85,7 +96,32 @@
     {  
         messages.Add(new(ChatRole.System, SystemPrompt));  
         chatOptions.Tools = [AIFunctionFactory.Create(SearchAsync),
-            AIFunctionFactory.Create(SearchMultiAgentAsync)];  
+    AIFunctionFactory.Create(SearchMultiAgentAsync)];  
+
+        // azureOpenAIEmbeddingConfig.Endpoint = "https://team-cnca.openai.azure.com/";
+        // azureOpenAIEmbeddingConfig.APIKey = "9sRuOPjJkuPOQ6JjmXi7HAymODjcZnlHxfuhHz9vgij6DcpFfE9hJQQJ99BDACmepeSXJ3w3AAABACOGJi2N";
+        // azureOpenAIEmbeddingConfig.Deployment = "gpt-4o-mini";
+
+        var embeddingGenerator = ServiceProvider.GetService<ITextEmbeddingGenerator>();
+
+        if (embeddingGenerator == null)
+        {
+            throw new InvalidOperationException("ITextEmbeddingGenerator was not registered properly.");
+        }
+
+        // var memory = new KernelMemoryBuilder()
+        //     .AddIngestionEmbeddingGenerator(embeddingGenerator)
+        //     .WithoutDefaultHandlers()
+        //     .WithCustomPromptProvider(new CSVSPromptBuilder())
+        //     .WithSimpleVectorDb()
+        //     //.WithOpenAIDefaults(Environment.GetEnvironmentVariable("AzureOpenAI_ApiKey"))
+        //     // .WithOpenAI(openAICfg)
+        //     // .WithAzureOpenAITextGeneration(azureOpenAITextConfig)
+        //     //.WithAzureOpenAITextEmbeddingGeneration(azureOpenAIEmbeddingConfig)
+        //     .Build<MemoryServerless>();
+
+        // memory.ImportDocumentAsync("file5-NASA-news.pdf");
+
     }  
 
     private async Task AddUserMessageAsync(ChatMessage userMessage)  
@@ -100,7 +136,7 @@
         await chatInput!.FocusAsync();  
 
         // Stream and display a new response from the IChatClient  
-        var responseText = new TextContent("");  
+        var responseText = new Microsoft.Extensions.AI.TextContent("");
         currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);  
         currentResponseCancellation = new();  
 
@@ -108,7 +144,7 @@
         {
             await foreach (var update in ChatClient.GetStreamingResponseAsync([.. messages], chatOptions, currentResponseCancellation.Token))
             {
-                messages.AddMessages(update, filter: c => c is not TextContent);
+                messages.AddMessages(update, filter: c => c is not Microsoft.Extensions.AI.TextContent);
                 responseText.Text += update.Text;
                 ChatMessageItem.NotifyChanged(currentResponseMessage);
             }
@@ -170,7 +206,7 @@
 
         // Call the GetMultiAgentResponseAsync method
         string aiMultiAgentResponses = await MultiAgentApiClient.GetMultiAgentResponseAsync(_userMessage.Contents.Last().ToString());
-        var message = new ChatMessage(ChatRole.Assistant, new TextContent(aiMultiAgentResponses).Text);
+        var message = new ChatMessage(ChatRole.Assistant, new Microsoft.Extensions.AI.TextContent(aiMultiAgentResponses).Text);
         messages.Add(message);
         ChatMessageItem.NotifyChanged(message);
 
@@ -179,12 +215,20 @@
         // Convert the string into a single-element IEnumerable
         IEnumerable<string> result = new List<string> { aiMultiAgentResponses };
 
+        CSVSPromptBuilder csvs = new CSVSPromptBuilder();
+        var kernel = Kernel.CreateBuilder().Build();
+
+        await csvs.IngestDataIntoInMemoryVectorStoreAsync(kernel, ServiceProvider);
+
         // Wrap the IEnumerable in a Task
         return await Task.FromResult(result);
         // return results.Select(result =>
         //     $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");
     }
 
-   public void Dispose()  
-       => currentResponseCancellation?.Cancel();  
+    public void Dispose()  
+        => currentResponseCancellation?.Cancel();
+
+
+
 }
