@@ -8,21 +8,24 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
 {
     public class MultiAgentApiClient
     {
+        private readonly Kernel _semanticKernel;
         private readonly HttpClient _httpClient;
         private readonly AzureOpenAIClient _openAIClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<SemanticKernelService> _logger;
 
-        public MultiAgentApiClient(HttpClient httpClient, AzureOpenAIClient openAIClient, IConfiguration configuration, ILogger<SemanticKernelService> logger)
+        public MultiAgentApiClient(Kernel semanticKernel, HttpClient httpClient, AzureOpenAIClient openAIClient, IConfiguration configuration, ILogger<SemanticKernelService> logger)
         {
+            _semanticKernel = semanticKernel;
             _httpClient = httpClient;
             _openAIClient = openAIClient;
             _configuration = configuration;
             _logger = logger;
         }
 
-        public MultiAgentApiClient(HttpClient httpClient, AzureOpenAIClient openAIClient, ILogger<SemanticKernelService> logger)
+        public MultiAgentApiClient(Kernel semanticKernel, HttpClient httpClient, AzureOpenAIClient openAIClient, ILogger<SemanticKernelService> logger)
         {
+            _semanticKernel = semanticKernel;
             _httpClient = httpClient;
             _openAIClient = openAIClient;
             _logger = logger;
@@ -37,7 +40,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                 throw new InvalidOperationException("_configuration is not initialized.");
             }
 
-            SemanticKernelService semanticKernelService = new SemanticKernelService(_configuration, _logger);
+            SemanticKernelService semanticKernelService = new SemanticKernelService(_semanticKernel, _configuration, _logger);
             List<ChatMessageContent> outputMessage = await semanticKernelService.GetDemoResponse(userInput);
 
             string outputString = "";

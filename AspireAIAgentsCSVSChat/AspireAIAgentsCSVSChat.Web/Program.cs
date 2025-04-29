@@ -156,6 +156,8 @@ if (!string.IsNullOrWhiteSpace(connectionString))
     kernelBuilder.Services.AddSingleton<IEmbeddingGenerator>(embeddingGenerator);
     kernelBuilder.Services.AddScoped<DataIngestor>();
     kernelBuilder.Services.AddSingleton<SemanticSearch>();
+    // Configure the kernel with OpenAI settings using _openAIClient  
+    kernelBuilder.AddAzureOpenAIChatCompletion("gpt-4o-mini", endpoint, key);
 
     // Build the kernel and get the data uploader.
     Kernel kernel = kernelBuilder.Build();

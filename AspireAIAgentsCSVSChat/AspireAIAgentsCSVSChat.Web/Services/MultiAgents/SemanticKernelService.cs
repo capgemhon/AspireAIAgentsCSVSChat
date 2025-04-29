@@ -50,8 +50,9 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             _semanticKernel = builder.Build();
         }
 
-        public SemanticKernelService(IConfiguration configuration, ILogger<SemanticKernelService> logger)
+        public SemanticKernelService(Kernel semanticKernel, IConfiguration configuration, ILogger<SemanticKernelService> logger)
         {
+            _semanticKernel = semanticKernel;
             _logger = logger;
             // Get endpoint and key credential from configuration
 
@@ -92,13 +93,9 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
         public async Task<List<ChatMessageContent>> GetDemoResponse(string userInput)
         {
             // Correcting the builder initialization and usage  
-            var builder = Kernel.CreateBuilder();
-
-            // Configure the kernel with OpenAI settings using _openAIClient  
-            builder.AddAzureOpenAIChatCompletion("gpt-4o-mini", endpoint, key);
 
             // Build the kernel  
-            var kernel = builder.Build();
+            var kernel = _semanticKernel;
 
             ChatCompletionAgent ValidationPlanningAgent =
                 new()
@@ -219,7 +216,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             // Convert message history to a format compatible with the chat completion service  
             var chatHistory = messageHistory.Select(msg => new ChatMessage
             {
-                
+
                 AuthorName = msg.AuthorName,
                 Contents = msg.Contents
             }).ToList();
