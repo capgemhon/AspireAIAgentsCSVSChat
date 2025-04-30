@@ -10,5 +10,7 @@
         ChangeManagement = 5,
         OngoingReview = 6,
         Coordinator = 7,
+        SelectionStrategy = 8,
+        TerminationStrategy = 9
     }
 }

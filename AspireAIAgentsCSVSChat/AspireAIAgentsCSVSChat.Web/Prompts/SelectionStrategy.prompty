@@ -1,21 +1,18 @@
 ﻿Examine RESPONSE and choose the next participant.
 
 Choose only from these participants:
-- ValidationPlanning
-- RequirementsSpecification
-- Transactions
-- DesignQualification
-- InstallationQualityOP
-- DocumentationTraining
-- DocumentationTraining
-- ChangeManagement
-- OngoingReview
+- {{{firststage}}}
+- {{{secondstage}}}
+- {{{thirdstage}}}
 
-- Coordinator
+Always follow these two when selecting the next participant:
+1) After user input, it is {{{firststage}}}'s turn.
+2) After {{{firststage}}}'s replies, it's {{{secondstage}}}'s turn to generate plan for the specification.
+    
+3) Finally, it's {{{thirdstage}}} turn to review and approve the plan.
+4) If the plan is approved, the conversation ends.
+5) If the plan isn't approved, it's {{{firststage}}} turn again.
 
-Always follow these rules when choosing the next participant:
-- Determine the nature of the user's request and route it to the appropriate agent
-- If the user is responding to an agent, select that same agent.
-- If the agent is responding after fetching or verifying data , select that same agent.
-- If unclear, select Coordinator.
-                    
+History:
+{{$history}}
+

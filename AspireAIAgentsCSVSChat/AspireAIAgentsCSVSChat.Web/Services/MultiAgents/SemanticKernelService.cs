@@ -92,7 +92,10 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
 
         public async Task<List<ChatMessageContent>> GetDemoResponse(string userInput)
         {
-            // Correcting the builder initialization and usage  
+            // Setting the multiagents name and usage  
+            const string firststage = "ValidationPlanning";
+            const string secondstage = "RequirementsSpecification";
+            const string thirdstage = "OngoingReview";
 
             // Build the kernel  
             var kernel = _semanticKernel;
@@ -101,7 +104,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                 new()
                 {
                     Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.ValidationPlanning)}""",
-                    Name = SystemPromptFactory.GetAgentName(AgentType.ValidationPlanning),
+                    Name = firststage,
                     Kernel = kernel
                 };
 
@@ -109,7 +112,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                 new()
                 {
                     Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.RequirementsSpecification)}""",
-                    Name = SystemPromptFactory.GetAgentName(AgentType.RequirementsSpecification),
+                    Name = secondstage,
                     Kernel = kernel
                 };
 
@@ -124,48 +127,79 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             ChatCompletionAgent InstallationQualityOPAgent =
                 new()
                 {
-                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.DesignQualification)}""",
-                    Name = SystemPromptFactory.GetAgentName(AgentType.DesignQualification),
+                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.InstallationQualityOP)}""",
+                    Name = SystemPromptFactory.GetAgentName(AgentType.InstallationQualityOP),
                     Kernel = kernel
                 };
 
             ChatCompletionAgent DocumentationTrainingAgent =
                 new()
                 {
-                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.DesignQualification)}""",
-                    Name = SystemPromptFactory.GetAgentName(AgentType.DesignQualification),
+                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.DocumentationTraining)}""",
+                    Name = SystemPromptFactory.GetAgentName(AgentType.DocumentationTraining),
                     Kernel = kernel
                 };
 
             ChatCompletionAgent ChangeManagementAgent =
                 new()
                 {
-                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.DesignQualification)}""",
-                    Name = SystemPromptFactory.GetAgentName(AgentType.DesignQualification),
+                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.ChangeManagement)}""",
+                    Name = SystemPromptFactory.GetAgentName(AgentType.ChangeManagement),
                     Kernel = kernel
                 };
 
             ChatCompletionAgent OngoingReviewAgent =
                 new()
                 {
-                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.DesignQualification)}""",
-                    Name = SystemPromptFactory.GetAgentName(AgentType.DesignQualification),
+                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.OngoingReview)}""",
+                    Name = thirdstage,
                     Kernel = kernel
                 };
 
+            KernelFunction selectionFunction = KernelFunctionFactory.CreateFromPrompt(
+                $$$"""
+                Your job is to determine which participant takes the next turn in a conversation according to the action of the most recent participant.
+                State only the name of the participant to take the next turn.
+
+                Choose only from these participants:
+                - {{{firststage}}}
+                - {{{secondstage}}}
+                - {{{thirdstage}}}
+
+                Always follow these two when selecting the next participant:
+                1) After user input, it is {{{firststage}}}'s turn.
+                2) After {{{firststage}}}'s replies, it's {{{secondstage}}}'s turn to generate plan for the specification.
+
+                3) Finally, it's {{{thirdstage}}} turn to review and approve the plan.
+                4) If the plan is approved, the conversation ends.
+                5) If the plan isn't approved, it's {{{firststage}}} turn again.
+
+                History:
+                {{$history}}
+                """
+                );
+
+            KernelFunction terminateFunction = KernelFunctionFactory.CreateFromPrompt($"""{SystemPromptFactory.GetAgentPrompts(AgentType.TerminationStrategy)}""");
+
 #pragma warning disable SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
-            AgentGroupChat chat =
-                new(ValidationPlanningAgent, RequirementsSpecificationAgent, DesignQualificationAgent, InstallationQualityOPAgent, DocumentationTrainingAgent, ChangeManagementAgent, OngoingReviewAgent)
+           AgentGroupChat chat =
+                new(ValidationPlanningAgent, RequirementsSpecificationAgent, OngoingReviewAgent)
                 {
                     ExecutionSettings =
                         new()
                         {
-                            TerminationStrategy =
-                                new ApprovalTerminationStrategy()
-                                {
-                                    Agents = [OngoingReviewAgent],
-                                    MaximumIterations = 10,
-                                }
+                            TerminationStrategy = new KernelFunctionTerminationStrategy(terminateFunction, kernel)
+                            {
+                                Agents = [OngoingReviewAgent],
+                                ResultParser = (result) => result.GetValue<string>()?.Contains("yes", StringComparison.OrdinalIgnoreCase) ?? false,
+                                HistoryVariableName = "history",
+                                MaximumIterations = 10
+                            },
+                            SelectionStrategy = new KernelFunctionSelectionStrategy(selectionFunction, kernel)
+                            {
+                                AgentsVariableName = "agents",
+                                HistoryVariableName = "history"
+                            }
                         }
                 };
 #pragma warning restore SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
@@ -177,7 +211,14 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
 
             await foreach (var content in chat.InvokeAsync())
             {
-                messages.Add(content);
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                messages.Add(new ChatMessageContent
+                {
+                    Role = content.Role,
+                    AuthorName = content.AuthorName ?? "*",
+                    Content = content.Content
+                });
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
                 _logger.LogInformation($"# {content.Role} - {content.AuthorName ?? "*"}: '{content.Content}'");
                 Console.WriteLine($"# {content.Role} - {content.AuthorName ?? "*"}: '{content.Content}'");
@@ -185,7 +226,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             }
 
             // Return list of messages from the multiagent  
-            return messages.TakeLast(1).ToList();
+            return messages.ToList();
         }
 
 #pragma warning disable SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.

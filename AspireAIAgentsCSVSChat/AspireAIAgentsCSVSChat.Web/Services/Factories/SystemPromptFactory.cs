@@ -67,10 +67,16 @@ namespace AspireAIAgentsCSVSChat.Web.Services.Factories
                     promptFile = "DocumentationTraining.prompty";
                     break;
                 case AgentType.ChangeManagement:
-                    promptFile = "CoordChangeManagementinator.prompty";
+                    promptFile = "ChangeManagement.prompty";
                     break;
                 case AgentType.OngoingReview:
                     promptFile = "OngoingReview.prompty";
+                    break;
+                case AgentType.SelectionStrategy:
+                    promptFile = "SelectionStrategy.prompty";
+                    break;
+                case AgentType.TerminationStrategy:
+                    promptFile = "TerminationStrategy.prompty";
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(agentType), agentType, null);
