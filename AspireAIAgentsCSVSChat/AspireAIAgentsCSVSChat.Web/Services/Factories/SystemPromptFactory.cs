@@ -70,7 +70,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.Factories
                     throw new ArgumentOutOfRangeException(nameof(agentType), agentType, null);
             }
 
-            string prompt = $"{File.ReadAllText("Prompts/" + promptFile)}";
+            string prompt = $"{File.ReadAllText("Prompts/" + promptFile)}{File.ReadAllText("Prompts/CommonAgentRules.prompty")}";
 
             return prompt;
         }
