@@ -60,6 +60,8 @@
                 new PDFDirectorySource(Path.Combine(_environment.WebRootPath, "Uploads"))  
             );  
         }
+        // Force page refresh
+        OnInitialized();
     }
 }
 
@@ -70,7 +72,7 @@
        If user types in @process, you will run SearchMultiAgentAsync, and if user types in @memory, you will run SearchMemoryAsync otherwise run SearchAsync.
        You are able to fully check or analyze whole external documents and process them if you can to see if this document is compliant or not.
        You can analyse any provided snippets or key sections of the report
-       Do not answer questions about anything else.  
+       Do not answer questions generally about anything else.  
 
        You can use the search tool to find relevant information. When you do this, end your  
        reply with any citations as the source in the special XML format:  
@@ -117,14 +119,29 @@
 
         var dataPath = Path.Combine("wwwroot", "Data");
 
-        // Ensure the filestream is closed properly using a 'using' statement  
+        // Infer the base ERD_LS_Medical_Device_Architectural_Specification_Template.docx into Semantic Kernel for all multiagents
         using (var filestream = new FileStream(dataPath + "\\ERD_LS_Medical_Device_Architectural_Specification_Template.docx", FileMode.Open))  
         {  
-            var textParagraphs = DocumentReader.ReadParagraphs(  
-                filestream,  
-                dataPath + "\\ERD_LS_Medical_Device_Architectural_Specification_Template.docx");  
+           var textParagraphs = DocumentReader.ReadParagraphs(  
+               filestream,  
+               dataPath + "\\ERD_LS_Medical_Device_Architectural_Specification_Template.docx");  
 
-            dataUploader.GenerateEmbeddingsAndUpload("software-documentation", textParagraphs);  
+           dataUploader.GenerateEmbeddingsAndUpload("software-documentation", textParagraphs);  
+        }
+
+        _environment = ServiceProvider.GetRequiredService<IHostingEnvironment>();
+
+        // Process all uploaded files dynamically and infer all uploaded documents for processeing into Semantic Kernel for all multiagents
+        var uploadDirectory = Path.Combine(_environment.WebRootPath, "Uploads");
+        var uploadedFiles = Directory.GetFiles(uploadDirectory);
+
+        foreach (var uploadedFile in uploadedFiles)
+        {
+           using (var filestream = new FileStream(uploadedFile, FileMode.Open))
+           {
+               var textParagraphs = DocumentReader.ReadParagraphs(filestream, uploadedFile);
+               dataUploader.GenerateEmbeddingsAndUpload("uploaded-documents", textParagraphs);
+           }
         }
 
     }

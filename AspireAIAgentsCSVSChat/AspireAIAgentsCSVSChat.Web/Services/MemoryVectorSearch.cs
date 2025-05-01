@@ -82,15 +82,15 @@ namespace AspireAIAgentsCSVSChat.Web.Services
                 Key = "3",
                 Category = "Software",
                 Term = "COTS",
-                Definition = "OTS software that comes from a commercial supplier.\r\n"
+                Definition = "COTS software that comes from a commercial supplier.\r\n"
             };
 
             yield return new Glossary
             {
                 Key = "4",
                 Category = "Software",
-                Term = "Semantic Kernel",
-                Definition = "As per FDA ;confirmation by examination and provision of objective evidence that \r\nsoftware specifications conform to user needs and intended uses, and that the \r\nparticular requirements implemented through software can be consistently fulfilled"
+                Term = "Software",
+                Definition = "As per FDA ;confirmation by examination and provision of objective evidence that \r\nsoftware specifications conform to user needs and intended uses, and that the \r\nparticular requirements implemented through software can be consistently fulfilled."
             };
         }
 
@@ -122,7 +122,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services
             Console.WriteLine($"Inferred Output: {inferredResult}");
             Console.WriteLine(searchResultItem.Score);
 
-            return searchResultItem.Record.Definition;
+            return "Definition: " + searchResultItem.Record.Definition + " " + inferredResult;
         }
 
         /// <summary>

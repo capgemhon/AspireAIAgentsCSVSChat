@@ -48,7 +48,9 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
 
             foreach (ChatMessageContent singleOutputMessage in outputMessage)
             {
-                Console.WriteLine($"Role: {singleOutputMessage.Role}, Content: {singleOutputMessage.Content}");
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                Console.WriteLine($"Agent: # {singleOutputMessage.AuthorName}, Role: {singleOutputMessage.Role}, Content: {singleOutputMessage.Content}");
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 outputString += singleOutputMessage.Content;
             }
 
