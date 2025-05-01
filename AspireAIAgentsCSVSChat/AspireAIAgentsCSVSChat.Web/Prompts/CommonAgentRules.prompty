@@ -1,4 +1,4 @@
 ﻿Important:
 - Provided Suggested Document Revision Steps always at the end
-- If it is completely valid, then do not suggest any changes and say its complete
-- Always use current datetime as datetime retrived from system
+- If it is fully completely valid, then do not suggest any changes and say its complete
+- Always use current datetime (DateTime.Now) as datetime retrieved from system

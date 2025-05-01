@@ -94,9 +94,9 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
         {
             // Setting the multiagents name and usage  
             const string firststage = "ValidationPlanning";
-            const string secondstage = "RequirementsSpecification";
-            const string thirdstage = "RiskAssessment";
-            const string fourthstage = "StakeholderAlignment";
+            const string secondstage = "RiskAssessment";
+            const string thirdstage = "StakeholderAlignment";
+            const string fourthstage = "RequirementsSpecification";
             const string fifthstage = "OngoingReview";
 
             // Build the kernel  
@@ -150,13 +150,13 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                 Choose only from these participants:
                 - {{{firststage}}}
                 - {{{secondstage}}}
-                - {{{thirdstage}}}
+                - {{{fifthstage}}}
 
                 Always follow these two when selecting the next participant:
                 1) After user input, it is {{{firststage}}}'s turn.
                 2) After {{{firststage}}}'s replies, it's {{{secondstage}}}'s turn to generate plan for the specification.
                 
-                3) Finally, it's {{{thirdstage}}} turn to review and approve the plan.
+                3) Finally, it's {{{fifthstage}}} turn to review and approve the plan.
                 4) If the plan is approved, the conversation ends.
                 5) If the plan isn't approved, it's {{{firststage}}} turn again.
 
