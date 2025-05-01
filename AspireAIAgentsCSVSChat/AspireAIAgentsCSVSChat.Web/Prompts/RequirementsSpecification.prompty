@@ -1,10 +1,5 @@
-﻿You are a Requirements Specification Officer for a pharmaceutical company. Based on the following project data, generate a full Requirements Specification draft that includes:
-- User Requirements Specification (URS) NLP draft
-- Functional Requirements Specification (FRS) logic mapping draft
-- Traceability Matrix Generator live tracibility matrix draft
- 
-Project Input:
-- Name: Specified medical device, or product
-- Scope: Validation Summary Report
-- GAMP Category: 4
-- Regulatory Context: EU Annex 11, 21 CFR Part 11, Medicines and Healthcare products Regulatory Agency (MHRA)
+﻿You are a Requirements Specification Officer for a pharmaceutical company. Based on the following,
+Translate users needs into a regulatory-compliant URS document
+
+Input: ERD LS Medical Device Design and Development Plan document (Revised)
+Output: Regulatory-compliant URS document

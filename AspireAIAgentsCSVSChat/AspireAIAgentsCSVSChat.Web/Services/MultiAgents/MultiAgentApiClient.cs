@@ -1,4 +1,5 @@
 ﻿using AspireAIAgentsCSVSChat.Web.Services.Configuration;
+using AspireAIAgentsCSVSChat.Web.Services.Interfaces;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
@@ -12,9 +13,9 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
         private readonly HttpClient _httpClient;
         private readonly AzureOpenAIClient _openAIClient;
         private readonly IConfiguration _configuration;
-        private readonly ILogger<SemanticKernelService> _logger;
+        private readonly ILogger<MultiAgentService> _logger;
 
-        public MultiAgentApiClient(Kernel semanticKernel, HttpClient httpClient, AzureOpenAIClient openAIClient, IConfiguration configuration, ILogger<SemanticKernelService> logger)
+        public MultiAgentApiClient(Kernel semanticKernel, HttpClient httpClient, AzureOpenAIClient openAIClient, IConfiguration configuration, ILogger<MultiAgentService> logger)
         {
             _semanticKernel = semanticKernel;
             _httpClient = httpClient;
@@ -23,7 +24,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             _logger = logger;
         }
 
-        public MultiAgentApiClient(Kernel semanticKernel, HttpClient httpClient, AzureOpenAIClient openAIClient, ILogger<SemanticKernelService> logger)
+        public MultiAgentApiClient(Kernel semanticKernel, HttpClient httpClient, AzureOpenAIClient openAIClient, ILogger<MultiAgentService> logger)
         {
             _semanticKernel = semanticKernel;
             _httpClient = httpClient;
@@ -40,8 +41,8 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                 throw new InvalidOperationException("_configuration is not initialized.");
             }
 
-            SemanticKernelService semanticKernelService = new SemanticKernelService(_semanticKernel, _configuration, _logger);
-            List<ChatMessageContent> outputMessage = await semanticKernelService.GetDemoResponse(userInput);
+            MultiAgentService semanticKernelService = new MultiAgentService(_semanticKernel, _configuration, _logger);
+            List<ChatMessageContent> outputMessage = await semanticKernelService.GetInitialResponse(userInput);
 
             string outputString = "";
 

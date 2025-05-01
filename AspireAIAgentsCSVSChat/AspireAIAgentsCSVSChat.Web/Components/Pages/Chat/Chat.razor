@@ -16,26 +16,24 @@
 @inject IServiceProvider ServiceProvider
 @inject Kernel SemanticKernel
 
-<PageTitle>Chat</PageTitle>  
+<PageTitle>CSV Chat</PageTitle>  
 
 <ChatHeader OnNewChat="@ResetConversationAsync" />  
 
 <ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage">  
     <NoMessagesContent>  
-        <div>To get started, try asking about these example documents. You can replace these with your own data and replace this message.</div>
+        <div>To get started, try uploading a mock ERD Medical Device Design Plan Document. You can type (at-sign)process document name to trigger the multiagent otherwise you can do general search on any uploaded documents listed below.</div>
         <ChatCitation File="GMP_Compliance_Report_Guidelines_V_7.pdf"/>
         <ChatCitation File="ERD_LS_Medical_Device_Architectural_Specification_Template.pdf" />
     </NoMessagesContent>  
-</ChatMessageList>  
-
-<div class="chat-container">  
+</ChatMessageList>
+<div class="btn-default upload-button" style="width:250px; margin:10px; margin-left:80px;">
+    <InputFile OnChange="UploadFileSelected" />
+</div>
+<div class="chat-container" style="background-color: #ccffcc;">
     <ChatSuggestions OnSelected="@AddUserMessageAsync" @ref="@chatSuggestions" />  
     <ChatInput OnSend="@AddUserMessageAsync" @ref="@chatInput" />  
     @* <SurveyPrompt /> *@ @* Remove this line to eliminate the template survey message *@ 
-
-    <div class="btn-default upload-button" style="width:250px; margin:10px; margin-left:95px;">  
-        <InputFile OnChange="UploadFileSelected" />  
-    </div>  
 </div>  
 
 @code {

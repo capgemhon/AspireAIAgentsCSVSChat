@@ -14,20 +14,14 @@ namespace AspireAIAgentsCSVSChat.Web.Services.Factories
                 case AgentType.ValidationPlanning:
                     name = "ValidationPlanning";
                     break;
-                case AgentType.RequirementsSpecification:
-                    name = "RequirementsSpecification";
+                case AgentType.RiskAssessment:
+                    name = "RiskAssessment";
                     break;
-                case AgentType.DesignQualification:
-                    name = "DesignQualification";
-                    break;
-                case AgentType.InstallationQualityOP:
-                    name = "InstallationQualityOP";
-                    break;
-                case AgentType.DocumentationTraining:
+                case AgentType.StakeholderAlignment:
                     name = "DocumentationTraining";
                     break;
-                case AgentType.ChangeManagement:
-                    name = "ChangeManagement";
+                case AgentType.RequirementsSpecification:
+                    name = "RequirementsSpecification";
                     break;
                 case AgentType.OngoingReview:
                     name = "OngoingReview";
@@ -54,20 +48,14 @@ namespace AspireAIAgentsCSVSChat.Web.Services.Factories
                 case AgentType.ValidationPlanning:
                     promptFile = "ValidationPlanning.prompty";
                     break;
-                case AgentType.RequirementsSpecification:
-                    promptFile = "RequirementsSpecification.prompty";
+                case AgentType.RiskAssessment:
+                    promptFile = "RiskAssessment.prompty";
                     break;
-                case AgentType.DesignQualification:
-                    promptFile = "DesignQualification.prompty";
-                    break;
-                case AgentType.InstallationQualityOP:
-                    promptFile = "InstallationQualityOP.prompty";
-                    break;
-                case AgentType.DocumentationTraining:
+                case AgentType.StakeholderAlignment:
                     promptFile = "DocumentationTraining.prompty";
                     break;
-                case AgentType.ChangeManagement:
-                    promptFile = "ChangeManagement.prompty";
+                case AgentType.RequirementsSpecification:
+                    promptFile = "RequirementsSpecification.prompty";
                     break;
                 case AgentType.OngoingReview:
                     promptFile = "OngoingReview.prompty";
@@ -82,7 +70,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.Factories
                     throw new ArgumentOutOfRangeException(nameof(agentType), agentType, null);
             }
 
-            string prompt = $"{File.ReadAllText("Prompts/" + promptFile)}{File.ReadAllText("Prompts/CommonAgentRules.prompty")}";
+            string prompt = $"{File.ReadAllText("Prompts/" + promptFile)}";
 
             return prompt;
         }

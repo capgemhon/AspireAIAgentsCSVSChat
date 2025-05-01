@@ -4,13 +4,12 @@
     {
         ValidationPlanning = 0,
         RequirementsSpecification = 1,
-        DesignQualification = 2,
-        InstallationQualityOP = 3,
-        DocumentationTraining = 4,
-        ChangeManagement = 5,
-        OngoingReview = 6,
-        Coordinator = 7,
-        SelectionStrategy = 8,
-        TerminationStrategy = 9
+        RiskAssessment = 2,
+        StakeholderAlignment = 3,
+        DesignQualification = 4,
+        OngoingReview = 5,
+        Coordinator = 6,
+        SelectionStrategy = 7,
+        TerminationStrategy = 8
     }
 }

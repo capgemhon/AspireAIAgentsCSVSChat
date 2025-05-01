@@ -1,4 +1,4 @@
-﻿Determine if the specification plan has been approved by OngoingReview agent. If so, respond with a single word: yes.
+﻿Determine if the output has been approved by OngoingReview agent. If so, respond with a single word: yes.
 Otherwise No (without explanation)
 
 History:

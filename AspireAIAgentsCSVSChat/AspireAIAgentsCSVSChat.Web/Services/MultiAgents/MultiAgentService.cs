@@ -20,16 +20,16 @@ using Azure;
 
 namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
 {
-    public class SemanticKernelService : ISemanticKernelService, IDisposable
+    public class MultiAgentService : IMultiAgentService, IDisposable
     {
         readonly SemanticKernelServiceSettings _settings;
         readonly ILoggerFactory _loggerFactory;
-        readonly ILogger<SemanticKernelService> _logger;
+        readonly ILogger<MultiAgentService> _logger;
         readonly Kernel _semanticKernel;
         string endpoint = "";
         string key = "";
 
-        public SemanticKernelService(SemanticKernelServiceSettings settings)
+        public MultiAgentService(SemanticKernelServiceSettings settings)
         {
             _settings = settings;
 
@@ -50,7 +50,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             _semanticKernel = builder.Build();
         }
 
-        public SemanticKernelService(Kernel semanticKernel, IConfiguration configuration, ILogger<SemanticKernelService> logger)
+        public MultiAgentService(Kernel semanticKernel, IConfiguration configuration, ILogger<MultiAgentService> logger)
         {
             _semanticKernel = semanticKernel;
             _logger = logger;
@@ -83,14 +83,14 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             return _openAIClient;
         }
 
-        public SemanticKernelService()
+        public MultiAgentService()
         {
             // Default constructor for cases where settings are not provided
             var builder = Kernel.CreateBuilder();
             _semanticKernel = builder.Build();
         }
 
-        public async Task<List<ChatMessageContent>> GetDemoResponse(string userInput)
+        public async Task<List<ChatMessageContent>> GetInitialResponse(string userInput)
         {
             // Setting the multiagents name and usage  
             const string firststage = "ValidationPlanning";
@@ -113,38 +113,6 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                 {
                     Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.RequirementsSpecification)}""",
                     Name = secondstage,
-                    Kernel = kernel
-                };
-
-            ChatCompletionAgent DesignQualificationAgent =
-                new()
-                {
-                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.DesignQualification)}""",
-                    Name = SystemPromptFactory.GetAgentName(AgentType.DesignQualification),
-                    Kernel = kernel
-                };
-
-            ChatCompletionAgent InstallationQualityOPAgent =
-                new()
-                {
-                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.InstallationQualityOP)}""",
-                    Name = SystemPromptFactory.GetAgentName(AgentType.InstallationQualityOP),
-                    Kernel = kernel
-                };
-
-            ChatCompletionAgent DocumentationTrainingAgent =
-                new()
-                {
-                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.DocumentationTraining)}""",
-                    Name = SystemPromptFactory.GetAgentName(AgentType.DocumentationTraining),
-                    Kernel = kernel
-                };
-
-            ChatCompletionAgent ChangeManagementAgent =
-                new()
-                {
-                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.ChangeManagement)}""",
-                    Name = SystemPromptFactory.GetAgentName(AgentType.ChangeManagement),
                     Kernel = kernel
                 };
 
@@ -193,10 +161,11 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                                 Agents = [OngoingReviewAgent],
                                 ResultParser = (result) => result.GetValue<string>()?.Contains("yes", StringComparison.OrdinalIgnoreCase) ?? false,
                                 HistoryVariableName = "history",
-                                MaximumIterations = 10
+                                MaximumIterations = 8
                             },
                             SelectionStrategy = new KernelFunctionSelectionStrategy(selectionFunction, kernel)
                             {
+                                InitialAgent = ValidationPlanningAgent,
                                 AgentsVariableName = "agents",
                                 HistoryVariableName = "history"
                             }
