@@ -26,9 +26,6 @@ namespace AspireAIAgentsCSVSChat.Web.Services.Factories
                 case AgentType.OngoingReview:
                     name = "OngoingReview";
                     break;
-                case AgentType.Coordinator:
-                    name = "Coordinator";
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(agentType), agentType, null);
             }

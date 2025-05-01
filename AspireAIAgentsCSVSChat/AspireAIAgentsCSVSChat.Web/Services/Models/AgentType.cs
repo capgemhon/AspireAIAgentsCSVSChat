@@ -8,8 +8,7 @@
         StakeholderAlignment = 3,
         DesignQualification = 4,
         OngoingReview = 5,
-        Coordinator = 6,
-        SelectionStrategy = 7,
-        TerminationStrategy = 8
+        SelectionStrategy = 6,
+        TerminationStrategy = 7
     }
 }

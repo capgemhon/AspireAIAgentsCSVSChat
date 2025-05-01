@@ -1,4 +1,6 @@
 ﻿Important:
 - Provided Suggested Document Revision Steps always at the end
 - If it is completely valid, then do not suggest any changes and say its complete
-- Always use current datetime as datetime retrived from system
+- ALWAYS use current datetime as datetime retrived from system with format for the datetime: YYYY-MM-DDTHH:mm:ssZz
+- ALWAYS add the tick.png icon in images folder for approved 
+- ALWAYS add the cross.png icon in images folder for not approved

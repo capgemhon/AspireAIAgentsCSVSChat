@@ -12,6 +12,7 @@ Always follow these two when selecting the next participant:
 3) Finally, it's {{{thirdstage}}} turn to review and approve the plan.
 4) If the plan is approved, the conversation ends.
 5) If the plan isn't approved, it's {{{firststage}}} turn again.
+6) Always end on the {{{thirdstage}}} to approve or not approve the plan
 
 History:
 {{$history}}

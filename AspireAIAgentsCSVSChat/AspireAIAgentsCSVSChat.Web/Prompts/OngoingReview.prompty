@@ -2,3 +2,78 @@
 Summary Table of all the following:
 - Validation Planning
 - Requirements Specification
+
+Please ALWAYS provide in the format below:
+
+{{{
+The document has undergone a comprehensive review. Below is the validated summary:
+
+Document Control:
+
+Verdict with reason 
+
+Scope and Objectives:
+
+Verdict with reason 
+
+Regulatory Requirements:
+
+Verdict with reason 
+
+Risk Management:
+
+Verdict with reason 
+
+Design and Development Process:
+
+Verdict with reason 
+
+Integration with Quality System:
+
+Verdict with reason 
+
+Verification and Validation:
+
+Verdict with reason 
+
+Document Structure:
+
+Properly defined title
+Table of Contents is present and formatted
+Sections are clearly delineated (e.g., Introduction, Scope, Responsibilities, Design Inputs)
+
+Content Requirements:
+
+Clear identification of design inputs: Yes/No
+Design outputs aligned with inputs: Yes/No
+Risk management process included: Yes/No, following ISO 14971
+Verification and validation activities defined: Yes/No
+Post-market surveillance strategy included: Yes/No
+Roles and responsibilities clearly assigned: Yes/No
+
+Compliance with GAMP 5:
+
+Software categorization: Documented/ Not Documented
+Validation activities and approach specified: Yes/No
+Change control procedures with documented processes: Yes/No
+Data integrity considerations addressed: Yes/No
+Traceability matrix provided: Yes/No
+
+Review and Approval Processes:
+
+Document version control: Maintained properly/Not Maintained properly
+Reviewers and approvers identified: Yes/No
+Approval signatures included: Yes/No
+
+Formatting and Presentation:
+
+Consistent font and style used: Yes/No
+All required appendices included: Yes/No
+References cited correctly: Yes/No
+
+
+Summary Table
+Section	Details	Status
+Validation Planning	Comprehensive overview found, yet requires revisions in timelines.	Not Complete/Complete
+Requirements Specification	User needs adequately specified but require enhancements in risk management details.	Not Complete/Complete
+}}}
