@@ -31,8 +31,4 @@
     <ProjectReference Include="..\AspireAIAgentsCSVSChat.ServiceDefaults\AspireAIAgentsCSVSChat.ServiceDefaults.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\Uploads\" />
-  </ItemGroup>
-
 </Project>

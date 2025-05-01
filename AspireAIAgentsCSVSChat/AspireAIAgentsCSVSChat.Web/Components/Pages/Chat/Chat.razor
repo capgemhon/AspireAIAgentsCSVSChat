@@ -24,7 +24,7 @@
     <NoMessagesContent>  
         <div>To get started, try uploading a mock ERD Medical Device Design Plan Document. You can type (at-sign)process document name to trigger the multiagent otherwise you can do general search on any uploaded documents listed below.</div>
         <ChatCitation File="GMP_Compliance_Report_Guidelines_V_7.pdf"/>
-        <ChatCitation File="ERD_LS_Medical_Device_Architectural_Specification_Template.pdf" />
+        <ChatCitation File="Medical Device Design Plan.pdf" />
     </NoMessagesContent>  
 </ChatMessageList>
 <div class="btn-default upload-button" style="width:250px; margin:10px; margin-left:80px;">
@@ -119,12 +119,12 @@
 
         var dataPath = Path.Combine("wwwroot", "Data");
 
-        // Infer the base ERD_LS_Medical_Device_Architectural_Specification_Template.docx into Semantic Kernel for all multiagents
-        using (var filestream = new FileStream(dataPath + "\\ERD_LS_Medical_Device_Architectural_Specification_Template.docx", FileMode.Open))  
+        // Infer the base Medical Device Architectural Specification Template.docx to use as general knowledge into Semantic Kernel for all multiagents
+        using (var filestream = new FileStream(dataPath + "\\Medical Device Architectural Specification.docx", FileMode.Open))  
         {  
            var textParagraphs = DocumentReader.ReadParagraphs(  
                filestream,  
-               dataPath + "\\ERD_LS_Medical_Device_Architectural_Specification_Template.docx");  
+                dataPath + "\\Medical Device Architectural Specification.docx");
 
            dataUploader.GenerateEmbeddingsAndUpload("software-documentation", textParagraphs);  
         }
