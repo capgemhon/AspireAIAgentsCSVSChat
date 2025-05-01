@@ -95,7 +95,9 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             // Setting the multiagents name and usage  
             const string firststage = "ValidationPlanning";
             const string secondstage = "RequirementsSpecification";
-            const string thirdstage = "OngoingReview";
+            const string thirdstage = "RiskAssessment";
+            const string fourthstage = "StakeholderAlignment";
+            const string fifthstage = "OngoingReview";
 
             // Build the kernel  
             var kernel = _semanticKernel;
@@ -116,11 +118,27 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                     Kernel = kernel
                 };
 
+            ChatCompletionAgent RiskAssessmentAgent =
+                new()
+                {
+                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.RiskAssessment)}""",
+                    Name = thirdstage,
+                    Kernel = kernel
+                };
+
+            ChatCompletionAgent StakeholderAlignmentAgent =
+                new()
+                {
+                    Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.StakeholderAlignment)}""",
+                    Name = fourthstage,
+                    Kernel = kernel
+                };
+
             ChatCompletionAgent OngoingReviewAgent =
                 new()
                 {
                     Instructions = $"""{SystemPromptFactory.GetAgentPrompts(AgentType.OngoingReview)}""",
-                    Name = thirdstage,
+                    Name = fifthstage,
                     Kernel = kernel
                 };
 
@@ -137,7 +155,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                 Always follow these two when selecting the next participant:
                 1) After user input, it is {{{firststage}}}'s turn.
                 2) After {{{firststage}}}'s replies, it's {{{secondstage}}}'s turn to generate plan for the specification.
-
+                
                 3) Finally, it's {{{thirdstage}}} turn to review and approve the plan.
                 4) If the plan is approved, the conversation ends.
                 5) If the plan isn't approved, it's {{{firststage}}} turn again.
@@ -151,7 +169,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
 
 #pragma warning disable SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
            AgentGroupChat chat =
-                new(ValidationPlanningAgent, RequirementsSpecificationAgent, OngoingReviewAgent)
+                new(ValidationPlanningAgent, RequirementsSpecificationAgent, RiskAssessmentAgent, OngoingReviewAgent)
                 {
                     ExecutionSettings =
                         new()

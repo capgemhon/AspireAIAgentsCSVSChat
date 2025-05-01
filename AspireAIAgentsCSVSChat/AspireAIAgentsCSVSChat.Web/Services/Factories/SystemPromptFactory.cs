@@ -52,7 +52,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.Factories
                     promptFile = "RiskAssessment.prompty";
                     break;
                 case AgentType.StakeholderAlignment:
-                    promptFile = "DocumentationTraining.prompty";
+                    promptFile = "StakeholderAlignment.prompty";
                     break;
                 case AgentType.RequirementsSpecification:
                     promptFile = "RequirementsSpecification.prompty";

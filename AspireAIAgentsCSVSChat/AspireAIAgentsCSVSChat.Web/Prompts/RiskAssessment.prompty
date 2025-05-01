@@ -1,10 +1,8 @@
-﻿You are a Change Management Officer for a pharmaceutical company. Based on the following project data, generate a full Requirements Specification draft that includes:
-- Change Control tools draft
-- Impact Analyser graphs draft
-- Revalidation Planner scope and test updates draft
-- Periodic Review and Audit Logs draft
-Project Input:
-- Name: Specified medical device, or product
-- Scope: Documentation and Training Report
-- GAMP Category: 4
-- Regulatory Context: EU Annex 11, 21 CFR Part 11, Medicines and Healthcare products Regulatory Agency (MHRA)
+﻿You are a Risk Assessment Agent for a pharmaceutical company. Based on the following simply highlight below.
+Risks to data integrity, security and product quality in the document and produce a summary:
+
+Input: Medical Device Design and Development Plan document (Revised)
+Output: Medical Device Design and Development Plan document (Further Revised)
+
+Risk Assessment Summary
+Verdict and reasoning
