@@ -1,19 +1,19 @@
-<div class="chat-header-container main-background-gradient">
-    <div class="chat-header-controls page-width">
-        <button class="btn-default" @onclick="@OnNewChat">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="new-chat-icon">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            New chat
-        </button>
-    </div>
-    <div style="position: relative;">
-        <img src="/images/csv-logo.png" alt="CSV Logo" style="top: 20px; left: 50px; right: 50px; width: 80px; height: 80px; margin-left: 40px; margin-bottom: 20px;" />
-    </div>
-    <h1 class="page-width">Aspire AI Computer System Validation Chat</h1>
-</div>
+<div class="chat-header-container main-background-gradient">  
+   <div class="chat-header-controls page-width">  
+       <button class="btn-default" @onclick="@OnNewChat">  
+           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="new-chat-icon">  
+               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />  
+           </svg>  
+           New chat  
+       </button>  
+   </div>  
+   <div class="page-width" style="display: flex; align-items: center;">  
+       <img src="/images/csv-logo.png" alt="CSV Logo" style="width: 80px; height: 80px; margin-right: 20px;" />  
+       <h1>Aspire AI Computer System Validation Chat</h1>  
+   </div>  
+</div>  
 
-@code {
-    [Parameter]
-    public EventCallback OnNewChat { get; set; }
+@code {  
+   [Parameter]  
+   public EventCallback OnNewChat { get; set; }  
 }

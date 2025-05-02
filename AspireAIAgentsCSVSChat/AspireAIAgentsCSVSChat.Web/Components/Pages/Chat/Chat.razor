@@ -99,8 +99,8 @@
     {  
         messages.Add(new(ChatRole.System, SystemPrompt));  
         chatOptions.Tools = [AIFunctionFactory.Create(SearchAsync),
-                        AIFunctionFactory.Create(SearchMultiAgentAsync),
-                        AIFunctionFactory.Create(SearchMemoryAsync)];
+                AIFunctionFactory.Create(SearchMultiAgentAsync),
+                AIFunctionFactory.Create(SearchMemoryAsync)];
 
         // azureOpenAIEmbeddingConfig.Endpoint = "https://team-cnca.openai.azure.com/";
         // azureOpenAIEmbeddingConfig.APIKey = "9sRuOPjJkuPOQ6JjmXi7HAymODjcZnlHxfuhHz9vgij6DcpFfE9hJQQJ99BDACmepeSXJ3w3AAABACOGJi2N";
@@ -122,11 +122,11 @@
         // Infer the base Medical Device Architectural Specification Template.docx to use as general knowledge into Semantic Kernel for all multiagents
         using (var filestream = new FileStream(dataPath + "\\Medical Device Architectural Specification.docx", FileMode.Open))  
         {  
-           var textParagraphs = DocumentReader.ReadParagraphs(  
-               filestream,  
-                dataPath + "\\Medical Device Architectural Specification.docx");
+            var textParagraphs = DocumentReader.ReadParagraphs(  
+                filestream,  
+                 dataPath + "\\Medical Device Architectural Specification.docx");
 
-           dataUploader.GenerateEmbeddingsAndUpload("software-documentation", textParagraphs);  
+            dataUploader.GenerateEmbeddingsAndUpload("software-documentation", textParagraphs);  
         }
 
         _environment = ServiceProvider.GetRequiredService<IHostingEnvironment>();
@@ -137,11 +137,11 @@
 
         foreach (var uploadedFile in uploadedFiles)
         {
-           using (var filestream = new FileStream(uploadedFile, FileMode.Open))
-           {
-               var textParagraphs = DocumentReader.ReadParagraphs(filestream, uploadedFile);
-               dataUploader.GenerateEmbeddingsAndUpload("uploaded-documents", textParagraphs);
-           }
+            using (var filestream = new FileStream(uploadedFile, FileMode.Open))
+            {
+                var textParagraphs = DocumentReader.ReadParagraphs(filestream, uploadedFile);
+                dataUploader.GenerateEmbeddingsAndUpload("uploaded-documents", textParagraphs);
+            }
         }
 
     }
@@ -222,27 +222,24 @@
 
     [Description("When user types in command @process, run the multiagent services to validate an input")]
     private async Task<IEnumerable<string>> SearchMultiAgentAsync(
-       [Description("If possible, specify the filename to process that file only. If not provided or empty, the search includes all files.")] string? filenameFilter = null)
-    {
-        await InvokeAsync(StateHasChanged);
+       [Description("If possible, specify the filename to process that file only. If not provided or empty, the search includes all files.")] string? filenameFilter = null)  
+    {  
+        await InvokeAsync(StateHasChanged);  
 
-        // Call the GetMultiAgentResponseAsync method
-        string aiMultiAgentResponses = await MultiAgentApiClient.GetMultiAgentResponseAsync(_userMessage.Contents.Last().ToString());
-        var message = new ChatMessage(ChatRole.Assistant, new Microsoft.Extensions.AI.TextContent(aiMultiAgentResponses).Text);
-        ChatMessageItem.NotifyChanged(message);
+        // Call the GetMultiAgentResponseAsync method  
+        string aiMultiAgentResponses = await MultiAgentApiClient.GetMultiAgentResponseAsync(_userMessage.Contents.Last().ToString());  
+        var message = new ChatMessage(ChatRole.Assistant, new Microsoft.Extensions.AI.TextContent(aiMultiAgentResponses).Text);  
+        ChatMessageItem.NotifyChanged(message);  
 
-        var results = message;
+        // Convert the string into a single-element IEnumerable  
+        IEnumerable<string> result = new List<string> { aiMultiAgentResponses };  
 
-        // Convert the string into a single-element IEnumerable
-        IEnumerable<string> result = new List<string> { aiMultiAgentResponses };
+        // Write the result into a PDF file  
 
-        // // Combine the multi-agent response with search results
-        // IEnumerable<string> combinedResults = searchResults.Aggregate(aiMultiAgentResponses);
+        RunPdf(Path.Combine("wwwroot", "Fonts", "arial.ttf"), Path.Combine("wwwroot", "Images", "csv-logo.png"), string.Join(Environment.NewLine, result), filenameFilter);
 
-        // Wrap the IEnumerable in a Task
-        return await Task.FromResult(result);
-        // return results.Select(result =>
-        //     $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");
+        // Wrap the IEnumerable in a Task  
+        return await Task.FromResult(result);  
     }
 
     [Description("When user types in command @memory, run the memory vector search services to validate an input")]
@@ -265,6 +262,66 @@
         return new List<string> { result };  
         // return results.Select(result =>  
         //     $"<result filename=\"{result.FileName}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");  
+    }
+
+    public static void RunPdf(string trueTypeFontPath, string jpgImagePath, string content, string fileName)
+    {
+        var builder = new UglyToad.PdfPig.Writer.PdfDocumentBuilder
+            {
+                ArchiveStandard = UglyToad.PdfPig.Writer.PdfAStandard.A2A
+            };
+
+        var font = builder.AddTrueTypeFont(File.ReadAllBytes(trueTypeFontPath));
+
+        var page = builder.AddPage(UglyToad.PdfPig.Content.PageSize.A4);
+        var pageTop = new UglyToad.PdfPig.Core.PdfPoint(0, page.PageSize.Top);
+
+        try
+        {
+            var contentHeader = page.AddText("Validation Planning Report - " + fileName,
+                10,
+                pageTop.Translate(20, -25),
+                font);
+
+            var contentLines = content.Split('\n');
+            int yPosition = -30;  
+            foreach (var line in contentLines)  
+            {  
+                if (yPosition <= -800)  
+                {  
+                    page = builder.AddPage(UglyToad.PdfPig.Content.PageSize.A4);  
+                    pageTop = new UglyToad.PdfPig.Core.PdfPoint(0, page.PageSize.Top);  
+                    yPosition = -30;  
+                }  
+
+                page.AddText(line,  
+                    6,  
+                    pageTop.Translate(20, yPosition -= 5),  
+                    font);  
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to add text to PDF due to error: {ex}.");
+        }
+
+        //var bottomOfText = letters.Min(x => x.GlyphRectangle.Bottom);
+        // var imagePlacement = new UglyToad.PdfPig.Core.PdfRectangle(new UglyToad.PdfPig.Core.PdfPoint(50, bottomOfText - 200),
+        //     new UglyToad.PdfPig.Core.PdfPoint(150, bottomOfText));
+        // page.AddJpeg(File.ReadAllBytes(jpgImagePath), imagePlacement);
+
+        var fileBytes = builder.Build();
+
+        try
+        {
+            var output = Path.Combine("wwwroot", "Reports", "Report-" + fileName + ".pdf");
+            File.WriteAllBytes(output, fileBytes);
+            Console.WriteLine($"File output to: {output}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to write output to file due to error: {ex}.");
+        }
     }
 
     public void Dispose()  
