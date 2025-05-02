@@ -22,8 +22,13 @@
 
 <ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage">  
     <NoMessagesContent>  
-        <div>To get started, try uploading a mock ERD Medical Device Design Plan Document. You can type (at-sign)process document name to trigger the multiagent otherwise you can do general search on any uploaded documents listed below.</div>
+        <div>To get started, try uploading a mock ERD Medical Device Design Plan Document. You can type (at-sign)process document name to trigger the multiagent.
+            If you like to verify with GMP Compliance document then you can write (at-sign)process Medical Device Plan - Bluefin v0.0 compare with GMP Compliance. 
+            If you like to verify with ISO 13485 document then you can write (at-sign)process Medical Device Plan - Bluefin v0.0 compare with ISO 13485 Compliance.
+            Otherwise you can do general search on any uploaded documents listed below.</div>
         <ChatCitation File="GMP_Compliance_Report_Guidelines_V_7.pdf"/>
+        <ChatCitation File="GMP_Compliance.pdf" />
+        <ChatCitation File="ISO 13485 Compliance.pdf" />
         <ChatCitation File="Medical Device Design Plan.pdf" />
     </NoMessagesContent>  
 </ChatMessageList>
@@ -102,10 +107,6 @@
                 AIFunctionFactory.Create(SearchMultiAgentAsync),
                 AIFunctionFactory.Create(SearchMemoryAsync)];
 
-        // azureOpenAIEmbeddingConfig.Endpoint = "https://team-cnca.openai.azure.com/";
-        // azureOpenAIEmbeddingConfig.APIKey = "9sRuOPjJkuPOQ6JjmXi7HAymODjcZnlHxfuhHz9vgij6DcpFfE9hJQQJ99BDACmepeSXJ3w3AAABACOGJi2N";
-        // azureOpenAIEmbeddingConfig.Deployment = "gpt-4o-mini";
-
         var embeddingGenerator = ServiceProvider.GetService<IEmbeddingGenerator>();
 
         if (embeddingGenerator == null)
@@ -131,7 +132,20 @@
 
         _environment = ServiceProvider.GetRequiredService<IHostingEnvironment>();
 
-        // Process all uploaded files dynamically and infer all uploaded documents for processeing into Semantic Kernel for all multiagents
+        // Process all compliance files dynamically and infer all compliance documents for processing into Semantic Kernel for all multiagents
+        var uploadComplianceDirectory = Path.Combine(_environment.WebRootPath, "Compliance");
+        var uploadedCompliance = Directory.GetFiles(uploadComplianceDirectory);
+
+        foreach (var uploadedFile in uploadedCompliance)
+        {
+            using (var filestream = new FileStream(uploadedFile, FileMode.Open))
+            {
+                var textParagraphs = DocumentReader.ReadParagraphs(filestream, uploadedFile);
+                dataUploader.GenerateEmbeddingsAndUpload("uploaded-compliance", textParagraphs);
+            }
+        }
+
+        // Process all uploaded files dynamically and infer all uploaded documents for processing into Semantic Kernel for all multiagents
         var uploadDirectory = Path.Combine(_environment.WebRootPath, "Uploads");
         var uploadedFiles = Directory.GetFiles(uploadDirectory);
 
