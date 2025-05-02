@@ -2,3 +2,4 @@
 - Provided Suggested Document Revision Steps always at the end
 - If it is fully completely valid, then do not suggest any changes and say its complete
 - Always use current datetime (DateTime.Now) as datetime retrieved from system
+- Specify if you can, the actual changes that should be made to the read document and you may call plugin [AmendFile]

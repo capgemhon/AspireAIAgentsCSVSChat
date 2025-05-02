@@ -16,7 +16,12 @@ using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Azure.AI.OpenAI;
 using Aspire.Azure.AI.OpenAI;
 using Azure;
+using Microsoft.SemanticKernel.Plugins.Document.OpenXml;
 // Added Microsoft.SemanticKernel (1.4.7)
+using Microsoft.SemanticKernel.Plugins.Document;
+using System.ComponentModel;
+using System.Text;
+// Added Microsoft.SemanticKernel.Plugins.Document (1.4.7)
 
 namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
 {
@@ -28,6 +33,7 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
         readonly Kernel _semanticKernel;
         string endpoint = "";
         string key = "";
+        ChatMessageContent agentResponses;
 
         public MultiAgentService(SemanticKernelServiceSettings settings)
         {
@@ -74,6 +80,13 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                     _openAIClient = new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(key));
                 }
             }
+
+            var builder = _semanticKernel;
+            // Add Amend File plugin to the kernel (Experimental)  
+            //if (!builder.Plugins.Any(plugin => plugin.GetType() == typeof(AmendFilePlugin)))
+            //{
+            //    builder.Plugins.AddFromType<AmendFilePlugin>();
+            //}
         }
 
         private readonly AzureOpenAIClient _openAIClient;
@@ -99,8 +112,9 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
             const string fourthstage = "RequirementsSpecification";
             const string fifthstage = "OngoingReview";
 
-            // Build the kernel  
+            // Connect the kernel  
             var kernel = _semanticKernel;
+
 
             ChatCompletionAgent ValidationPlanningAgent =
                 new()
@@ -143,52 +157,52 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                 };
 
             KernelFunction selectionFunction = KernelFunctionFactory.CreateFromPrompt(
-                $$$"""
-                Your job is to determine which participant takes the next turn in a conversation according to the action of the most recent participant.
-                State only the name of the participant to take the next turn.
+                $$$"""  
+                       Your job is to determine which participant takes the next turn in a conversation according to the action of the most recent participant.  
+                       State only the name of the participant to take the next turn.  
 
-                Choose only from these participants:
-                - {{{firststage}}}
-                - {{{secondstage}}}
-                - {{{fifthstage}}}
+                       Choose only from these participants:  
+                       - {{{firststage}}}  
+                       - {{{secondstage}}}  
+                       - {{{fifthstage}}}  
 
-                Always follow these two when selecting the next participant:
-                1) After user input, it is {{{firststage}}}'s turn.
-                2) After {{{firststage}}}'s replies, it's {{{secondstage}}}'s turn to generate plan for the specification.
-                
-                3) Finally, it's {{{fifthstage}}} turn to review and approve the plan.
-                4) If the plan is approved, the conversation ends.
-                5) If the plan isn't approved, it's {{{firststage}}} turn again.
+                       Always follow these two when selecting the next participant:  
+                       1) After user input, it is {{{firststage}}}'s turn.  
+                       2) After {{{firststage}}}'s replies, it's {{{secondstage}}}'s turn to generate plan for the specification.  
 
-                History:
-                {{$history}}
-                """
+                       3) Finally, it's {{{fifthstage}}} turn to review and approve the plan.  
+                       4) If the plan is approved, the conversation ends.  
+                       5) If the plan isn't approved, it's {{{firststage}}} turn again.  
+
+                       History:  
+                       {{$history}}  
+                       """
                 );
 
             KernelFunction terminateFunction = KernelFunctionFactory.CreateFromPrompt($"""{SystemPromptFactory.GetAgentPrompts(AgentType.TerminationStrategy)}""");
 
 #pragma warning disable SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
-           AgentGroupChat chat =
-                new(ValidationPlanningAgent, RequirementsSpecificationAgent, RiskAssessmentAgent, OngoingReviewAgent)
-                {
-                    ExecutionSettings =
-                        new()
-                        {
-                            TerminationStrategy = new KernelFunctionTerminationStrategy(terminateFunction, kernel)
-                            {
-                                Agents = [OngoingReviewAgent],
-                                ResultParser = (result) => result.GetValue<string>()?.Contains("yes", StringComparison.OrdinalIgnoreCase) ?? false,
-                                HistoryVariableName = "history",
-                                MaximumIterations = 8
-                            },
-                            SelectionStrategy = new KernelFunctionSelectionStrategy(selectionFunction, kernel)
-                            {
-                                InitialAgent = ValidationPlanningAgent,
-                                AgentsVariableName = "agents",
-                                HistoryVariableName = "history"
-                            }
-                        }
-                };
+            AgentGroupChat chat =
+                 new(ValidationPlanningAgent, RequirementsSpecificationAgent, RiskAssessmentAgent, OngoingReviewAgent)
+                 {
+                     ExecutionSettings =
+                         new()
+                         {
+                             TerminationStrategy = new KernelFunctionTerminationStrategy(terminateFunction, kernel)
+                             {
+                                 Agents = [OngoingReviewAgent],
+                                 ResultParser = (result) => result.GetValue<string>()?.Contains("yes", StringComparison.OrdinalIgnoreCase) ?? false,
+                                 HistoryVariableName = "history",
+                                 MaximumIterations = 8
+                             },
+                             SelectionStrategy = new KernelFunctionSelectionStrategy(selectionFunction, kernel)
+                             {
+                                 InitialAgent = ValidationPlanningAgent,
+                                 AgentsVariableName = "agents",
+                                 HistoryVariableName = "history"
+                             }
+                         }
+                 };
 #pragma warning restore SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
 
             List<ChatMessageContent> messages = new List<ChatMessageContent>();
@@ -198,14 +212,14 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
 
             await foreach (var content in chat.InvokeAsync())
             {
-#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
                 messages.Add(new ChatMessageContent
                 {
                     Role = content.Role,
                     AuthorName = content.AuthorName ?? "*",
                     Content = content.Content
                 });
-#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
                 _logger.LogInformation($"# {content.Role} - {content.AuthorName ?? "*"}: '{content.Content}'");
                 Console.WriteLine($"# {content.Role} - {content.AuthorName ?? "*"}: '{content.Content}'");
@@ -258,6 +272,8 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
                 kernel: kernel
             );
 
+            agentResponses = response;
+
             return response;
         }
 
@@ -299,6 +315,61 @@ namespace AspireAIAgentsCSVSChat.Web.Services.MultiAgents
         {
             // Dispose of any resources if necessary
             //_logger.LogInformation("Disposing the Semantic Kernel service...");
+        }
+    }
+
+    public class AmendFilePlugin
+    {
+        [KernelFunction("AmendFile")]
+        // Future proposed implementation (not working). I have created an interim report file that does this work but this plugin is to try and automate it directly into the Medical Device Design Plan.
+        [Description("When the agent requires to create an amended file from the Medical Device Design Plan it is reading from ,use this function with the fileName queried by the user.")]
+
+        public async Task AmendFile(string userInput, string filenameFilter)
+        {
+            
+            // Run the multiagents to get the amended content  
+            var responses = "Multigents recoomended amendments";
+            // Cant get this working below.
+            //var responses = agentResponses;
+
+            // Combine the responses into a single string  
+            // Cant get this working below.
+            //var amendedContent = string.Join("\n", responses.Select(r => r.Content));
+
+            // Use WordDocumentConnector (Experimental) to save the amended content using the Semantic Kernel and Agents (Experimental)  
+
+#pragma warning disable SKEXP0050 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.  
+            var connector = new WordDocumentConnector();
+            var uploadPath = Path.Combine("wwwroot", "Uploads", filenameFilter);
+            using var fileStream = File.OpenRead(uploadPath);
+
+            // Load the original document  
+            var documentContent = connector.ReadText(fileStream);
+#pragma warning restore SKEXP0050 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+            // Update the document with the amended content  
+            documentContent = responses;
+
+            // Define the Amendments folder path  
+            var amendmentsFolder = Path.Combine("wwwroot", "Amendments", filenameFilter);
+
+            // Ensure the Amendments folder exists  
+            if (!Directory.Exists(amendmentsFolder))
+            {
+                Directory.CreateDirectory(amendmentsFolder);
+            }
+
+            // Save the amended document to the Amendments folder  
+            var amendedFilePath = Path.Combine(amendmentsFolder, Path.GetFileName(filenameFilter));
+            // Corrected line to resolve CS1503 error by converting the string to a Stream.  
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(documentContent)))
+            {
+#pragma warning disable SKEXP0050 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                connector.AppendText(stream, amendedFilePath);
+#pragma warning restore SKEXP0050 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            }
+
+            //_logger.LogInformation($"Amended file saved to: {amendedFilePath}");
         }
     }
 
